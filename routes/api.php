@@ -16,7 +16,13 @@ Route::prefix('v1')->group(function () {
     Route::get('/projects', [\App\Http\Controllers\Api\V1\ProjectController::class, 'index']);
     Route::get('/projects/{slug}', [\App\Http\Controllers\Api\V1\ProjectController::class, 'show']);
     
-    // Stubs for future endpoints
-    Route::get('/posts', [PostController::class, 'index']);
-    Route::get('/posts/{slug}', [PostController::class, 'show']);
+    Route::get('/services', [\App\Http\Controllers\Api\V1\ServiceController::class, 'index']);
+    Route::get('/services/{slug}', [\App\Http\Controllers\Api\V1\ServiceController::class, 'show']);
+    
+    // Blog Posts
+    Route::get('/posts', [\App\Http\Controllers\Api\V1\PostController::class, 'index']);
+    Route::get('/posts/{slug}', [\App\Http\Controllers\Api\V1\PostController::class, 'show']);
+    
+    // Industries
+    Route::get('/industries', [\App\Http\Controllers\Api\V1\IndustryController::class, 'index']);
 });

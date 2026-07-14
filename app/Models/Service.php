@@ -10,7 +10,7 @@ class Service extends Model
     use HasTranslations;
 
     protected $guarded = [];
-    public $translatable = ['name', 'slug', 'short_description', 'full_description', 'features'];
+    public $translatable = ['name', 'slug', 'overview', 'problems_solved', 'capabilities', 'process'];
 
     //
 }

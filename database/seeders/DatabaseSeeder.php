@@ -17,6 +17,13 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
+        $this->call([
+            ProjectSeeder::class,
+            ServiceSeeder::class,
+            IndustrySeeder::class,
+            BlogSeeder::class,
+        ]);
+
         User::factory()->create([
             'name' => 'Admin',
             'email' => 'admin@threedigits.com',

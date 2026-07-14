@@ -13,10 +13,13 @@ class ProjectController extends Controller
         $locale = $request->header('Accept-Language', 'en');
         app()->setLocale($locale);
 
-        $projects = Project::with('category')
-            ->where('status', 'published')
-            ->orderBy('order', 'asc')
-            ->get();
+        $query = Project::with('category')->where('status', 'published');
+
+        if ($request->query('featured') === 'true') {
+            $query->where('is_featured', true);
+        }
+
+        $projects = $query->orderBy('order', 'asc')->get();
 
         $data = $projects->map(function ($project) {
             return [
