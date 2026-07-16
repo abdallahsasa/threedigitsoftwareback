@@ -171,7 +171,7 @@ class ProjectSeeder extends Seeder
                     'name' => ['en' => $project['name'], 'ar' => $project['name']],
                     'project_category_id' => $catMap[$project['cat']],
                     'status' => 'published',
-                    'is_featured' => true,
+                    'is_featured' => $order < 6, // Only feature the first 6 projects on the home page
                     'order' => $order++,
                     'live_url' => $project['url'],
                     'overview' => ['en' => $project['summary'], 'ar' => $project['summary']],

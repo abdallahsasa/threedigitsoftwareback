@@ -12,5 +12,8 @@ class BlogPost extends Model
     protected $guarded = [];
     public $translatable = ['title', 'slug', 'excerpt', 'content'];
 
-    //
+    public function category()
+    {
+        return $this->belongsTo(BlogCategory::class, 'blog_category_id');
+    }
 }
