@@ -29,6 +29,36 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'permissions' => 'array',
         ];
+    }
+
+    public function isAdmin(): bool
+    {
+        return ($this->role ?? 'admin') === 'admin';
+    }
+
+    public function canViewAccounting(): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+        return in_array('view_accounting', $this->permissions ?? []);
+    }
+
+    public function canCreateTransactions(): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+        return in_array('create_transactions', $this->permissions ?? []);
+    }
+
+    public function canManageReconciliations(): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+        return in_array('manage_reconciliations', $this->permissions ?? []);
     }
 }
