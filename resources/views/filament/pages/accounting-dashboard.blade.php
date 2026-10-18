@@ -1,4 +1,5 @@
 <x-filament-panels::page>
+    <link rel="stylesheet" href="{{ asset('css/accounting-pages.css') }}?v=1">
     <div class="space-y-6" dir="ltr">
         <!-- 1. Header & Cutover Status Banner -->
         <div class="p-6 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 shadow-sm relative overflow-hidden">

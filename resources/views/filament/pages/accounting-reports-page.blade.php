@@ -1,4 +1,5 @@
 <x-filament-panels::page>
+    <link rel="stylesheet" href="{{ asset('css/accounting-pages.css') }}?v=1">
     <div class="space-y-6" dir="ltr">
         <!-- 1. Header with Export Buttons -->
         <div class="p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">

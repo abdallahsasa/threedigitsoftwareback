@@ -37,6 +37,10 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->plugin(\Filament\SpatieLaravelTranslatablePlugin::make()->defaultLocales(['en', 'ar']))
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::HEAD_END,
+                fn (): \Illuminate\Support\HtmlString => new \Illuminate\Support\HtmlString('<link rel="stylesheet" href="' . asset('css/accounting-pages.css') . '">'),
+            )
             ->widgets([
                 Widgets\AccountWidget::class,
             ])
