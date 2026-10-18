@@ -24,13 +24,13 @@ class AccountingTransactionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-arrows-right-left';
 
-    protected static ?string $navigationGroup = 'نظام المحاسبة والمالية';
+    protected static ?string $navigationGroup = 'Accounting & Finance';
 
-    protected static ?string $navigationLabel = 'الحركات والقيود المالية';
+    protected static ?string $navigationLabel = 'Transactions & Journal';
 
-    protected static ?string $modelLabel = 'حركة مالية';
+    protected static ?string $modelLabel = 'Transaction';
 
-    protected static ?string $pluralModelLabel = 'الحركات المالية';
+    protected static ?string $pluralModelLabel = 'Transactions';
 
     protected static ?int $navigationSort = 2;
 
@@ -50,29 +50,29 @@ class AccountingTransactionResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('البيانات الأساسية للحركة')
-                    ->description('اختر نوع الحركة بدقة؛ حيث يقوم النظام تلقائياً بتوليد القيود المتوازنة وفصل أموال الشركة عن ديون الشركاء.')
+                Forms\Components\Section::make('Transaction Details')
+                    ->description('Select the transaction nature accurately. The system automatically maintains double-entry balance and segregates company capital from partner personal debts.')
                     ->schema([
                         Forms\Components\Select::make('transaction_type')
-                            ->label('نوع الحركة المحاسبية')
+                            ->label('Accounting Transaction Type')
                             ->options([
-                                'client_collection' => 'تحصيل من عميل (يزيد الصندوق أو يسدد مستحق العميل)',
-                                'partner_personal_expense' => 'مصروف شخصي دفعه الشريك من جيبه (يزيد دين الشريك دون إنقاص الصندوق)',
-                                'company_expense' => 'مصروف دفعته الشركة من أموالها (ينقص الصندوق ويزيد المصروف)',
-                                'partner_funding' => 'تمويل شريك قابل للاسترداد (يزيد الصندوق ويزيد دين الشريك دون زيادة إيرادات)',
-                                'partner_debt_repayment' => 'سداد جزء من دين الشريك (ينقص الصندوق وينقص دين الشريك دون مصروف)',
-                                'partner_distribution' => 'سحب شريك / توزيع أرباح (ينقص الصندوق ولا يسدد دين التمويل)',
-                                'partner_project_labor' => 'أجر فعلي للشريك مقابل تنفيذ مشروع (تكلفة مشروع مباشرة)',
-                                'capital_injection' => 'رأس مال تأسيسي (حقوق ملكية منفصلة عن الإيرادات والديون)',
-                                'internal_transfer' => 'تحويل بين حسابات الشركة',
-                                'reconciliation_adjustment' => 'تسوية محاسبية موثقة',
+                                'client_collection' => 'Client Collection (Increases Cash / Settles Receivable)',
+                                'partner_personal_expense' => 'Personal Out-of-Pocket Expense (Increases Partner Debt; Cash Unchanged)',
+                                'company_expense' => 'Company Expense (Paid from Treasury; Decreases Cash)',
+                                'partner_funding' => 'Refundable Partner Funding (Increases Cash & Partner Debt; Not Revenue)',
+                                'partner_debt_repayment' => 'Partner Debt Repayment (Decreases Cash & Partner Debt; Not Expense)',
+                                'partner_distribution' => 'Partner Drawing / Equity Distribution (Decreases Cash; Does Not Settle Debt)',
+                                'partner_project_labor' => 'Partner Project Execution Labor (Direct Project Cost)',
+                                'capital_injection' => 'Founding Capital Injection (Equity Contribution)',
+                                'internal_transfer' => 'Internal Account Transfer',
+                                'reconciliation_adjustment' => 'Reconciliation Adjustment',
                             ])
                             ->required()
                             ->live()
                             ->columnSpan(2),
 
                         Forms\Components\TextInput::make('amount')
-                            ->label('المبلغ بالدولار (USD)')
+                            ->label('Amount (USD)')
                             ->numeric()
                             ->required()
                             ->prefix('$')
@@ -80,14 +80,14 @@ class AccountingTransactionResource extends Resource
                             ->columnSpan(1),
 
                         Forms\Components\DatePicker::make('transaction_date')
-                            ->label('تاريخ الحركة')
+                            ->label('Transaction Date')
                             ->default(now())
                             ->required()
                             ->columnSpan(1),
 
                         Forms\Components\Select::make('partner_id')
-                            ->label('الشريك المعني')
-                            ->options(AccountingPartner::pluck('name_ar', 'id'))
+                            ->label('Target Partner')
+                            ->options(AccountingPartner::pluck('name_en', 'id'))
                             ->searchable()
                             ->visible(fn (Get $get) => in_array($get('transaction_type'), [
                                 'partner_personal_expense',
@@ -105,7 +105,7 @@ class AccountingTransactionResource extends Resource
                             ->columnSpan(1),
 
                         Forms\Components\Select::make('client_id')
-                            ->label('العميل')
+                            ->label('Associated Client')
                             ->options(AccountingClient::pluck('name', 'id'))
                             ->searchable()
                             ->live()
@@ -113,7 +113,7 @@ class AccountingTransactionResource extends Resource
                             ->columnSpan(1),
 
                         Forms\Components\Select::make('project_id')
-                            ->label('المشروع المرتبط')
+                            ->label('Associated Project')
                             ->options(fn (Get $get) => $get('client_id')
                                 ? AccountingProject::where('client_id', $get('client_id'))->pluck('name', 'id')
                                 : AccountingProject::pluck('name', 'id'))
@@ -121,15 +121,15 @@ class AccountingTransactionResource extends Resource
                             ->columnSpan(1),
 
                         Forms\Components\Select::make('expense_category')
-                            ->label('تصنيف المصروف / الخدمة')
+                            ->label('Expense Category')
                             ->options([
-                                'Office' => 'مصاريف المكتب والضيافة والنظافة',
-                                'Rent' => 'إيجار مقر ومكاتب الشركة',
-                                'Software' => 'برمجيات واشتراكات وسيرفرات (CapCut، أدوات)',
-                                'Salaries' => 'أجور تنفيذ ومستحقات الشركاء',
-                                'Marketing' => 'إعلانات وعمولات تسويق',
-                                'Equipment' => 'معدات وأصول ثابتة (إنفرتر، بطاريات، أثاث)',
-                                'Other' => 'مصاريف تشغيلية أخرى',
+                                'Office' => 'Office, Hospitality & Supplies',
+                                'Rent' => 'Office Space Rent',
+                                'Software' => 'Software, Digital Tools & Subscriptions',
+                                'Salaries' => 'Partner Project Labor & Execution Salaries',
+                                'Marketing' => 'Marketing, Ads & Referral Commissions',
+                                'Equipment' => 'Office Equipment & Fixed Assets (Inverters, Batteries)',
+                                'Other' => 'Other Operating Expenses',
                             ])
                             ->visible(fn (Get $get) => in_array($get('transaction_type'), [
                                 'partner_personal_expense',
@@ -139,13 +139,13 @@ class AccountingTransactionResource extends Resource
                             ->columnSpan(1),
 
                         Forms\Components\Select::make('money_source')
-                            ->label('مصدر الأموال الفعلي')
+                            ->label('Actual Source of Funds')
                             ->options([
-                                'company_funds' => 'صندوق / حساب أموال الشركة',
-                                'personal_abdullah' => 'المال الشخصي للشريك عبدالله',
-                                'personal_amer' => 'المال الشخصي للشريك عامر',
-                                'othman' => 'عثمان (ذمة مستقلة)',
-                                'undetermined' => 'غير محسوم (يحتاج مراجعة)',
+                                'company_funds' => 'Company Treasury / Bank',
+                                'personal_abdullah' => 'Abdullah Personal Funds',
+                                'personal_amer' => 'Amer Personal Funds',
+                                'othman' => 'Othman (Separate Account)',
+                                'undetermined' => 'Undetermined / Pending Audit',
                             ])
                             ->default(fn (Get $get) => match ($get('transaction_type')) {
                                 'partner_personal_expense' => 'personal_abdullah',
@@ -155,25 +155,25 @@ class AccountingTransactionResource extends Resource
                             ->columnSpan(1),
 
                         Forms\Components\Select::make('payment_method')
-                            ->label('طريقة الدفع')
+                            ->label('Payment Method')
                             ->options([
-                                'Cash' => 'نقداً (Cash)',
-                                'Bank Transfer' => 'تحويل بنكي',
-                                'western union' => 'ويسترن يونيون',
-                                'Credit Card' => 'بطاقة ائتمانية',
-                                'Wise' => 'حساب وايز',
-                                'Other' => 'أخرى',
+                                'Cash' => 'Cash in Hand',
+                                'Bank Transfer' => 'Bank Transfer',
+                                'Western Union' => 'Western Union',
+                                'Credit Card' => 'Credit / Debit Card',
+                                'Wise' => 'Wise Account',
+                                'Other' => 'Other',
                             ])
                             ->default('Cash')
                             ->columnSpan(1),
 
                         Forms\Components\Textarea::make('notes')
-                            ->label('البيان وتفاصيل الحركة')
+                            ->label('Description & Notes')
                             ->rows(3)
                             ->columnSpan(2),
 
                         Forms\Components\FileUpload::make('attachments')
-                            ->label('المرفقات والفواتير المؤيدة')
+                            ->label('Supporting Receipts & Invoices')
                             ->multiple()
                             ->directory('accounting/attachments')
                             ->columnSpan(2),
@@ -187,32 +187,32 @@ class AccountingTransactionResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('transaction_number')
-                    ->label('رقم الحركة')
+                    ->label('Ref #')
                     ->searchable()
                     ->sortable()
                     ->fontFamily('mono')
                     ->weight('bold'),
 
                 Tables\Columns\TextColumn::make('transaction_date')
-                    ->label('التاريخ')
+                    ->label('Date')
                     ->date('Y-m-d')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('transaction_type')
-                    ->label('نوع الحركة')
+                    ->label('Type')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'client_collection' => 'تحصيل من عميل',
-                        'partner_funding' => 'تمويل شريك للصندوق',
-                        'partner_personal_expense' => 'مصروف شخصي للشريك',
-                        'company_expense' => 'مصروف أموال الشركة',
-                        'partner_debt_repayment' => 'سداد دين شريك',
-                        'partner_distribution' => 'سحب شريك / أرباح',
-                        'partner_project_labor' => 'أجر تنفيذ مشروع',
-                        'capital_injection' => 'رأس مال تأسيسي',
-                        'internal_transfer' => 'تحويل داخلي',
-                        'reconciliation_adjustment' => 'تسوية محاسبية',
-                        default => $state,
+                        'client_collection' => 'Client Collection',
+                        'partner_funding' => 'Partner Funding',
+                        'partner_personal_expense' => 'Out-of-Pocket Expense',
+                        'company_expense' => 'Company Expense',
+                        'partner_debt_repayment' => 'Debt Repayment',
+                        'partner_distribution' => 'Partner Drawing',
+                        'partner_project_labor' => 'Project Labor',
+                        'capital_injection' => 'Founding Capital',
+                        'internal_transfer' => 'Internal Transfer',
+                        'reconciliation_adjustment' => 'Reconciliation Adj.',
+                        default => ucwords(str_replace('_', ' ', $state)),
                     })
                     ->color(fn (string $state): string => match ($state) {
                         'client_collection' => 'success',
@@ -225,7 +225,7 @@ class AccountingTransactionResource extends Resource
                     }),
 
                 Tables\Columns\TextColumn::make('amount')
-                    ->label('المبلغ')
+                    ->label('Amount')
                     ->money('USD')
                     ->sortable()
                     ->weight('bold')
@@ -236,20 +236,20 @@ class AccountingTransactionResource extends Resource
                     }),
 
                 Tables\Columns\TextColumn::make('party_name')
-                    ->label('الطرف المعني')
-                    ->state(fn (AccountingTransaction $record) => $record->partner?->name_ar
+                    ->label('Counterparty')
+                    ->state(fn (AccountingTransaction $record) => $record->partner?->name_en
                         ?: ($record->client?->name ?: ($record->payer_name ?: '-')))
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('money_source')
-                    ->label('مصدر الأموال')
+                    ->label('Source of Funds')
                     ->badge()
                     ->formatStateUsing(fn (?string $state): string => match ($state) {
-                        'company_funds' => 'أموال الشركة',
-                        'personal_abdullah' => 'جيب عبدالله',
-                        'personal_amer' => 'جيب عامر',
-                        'othman' => 'عثمان',
-                        default => $state ?: '-',
+                        'company_funds' => 'Company Treasury',
+                        'personal_abdullah' => 'Abdullah Personal',
+                        'personal_amer' => 'Amer Personal',
+                        'othman' => 'Othman',
+                        default => $state ? ucwords(str_replace('_', ' ', $state)) : '-',
                     })
                     ->color(fn (?string $state): string => match ($state) {
                         'company_funds' => 'success',
@@ -258,18 +258,18 @@ class AccountingTransactionResource extends Resource
                     }),
 
                 Tables\Columns\TextColumn::make('notes')
-                    ->label('البيان')
+                    ->label('Description')
                     ->limit(35)
                     ->tooltip(fn ($state) => $state),
 
                 Tables\Columns\TextColumn::make('status')
-                    ->label('الحالة')
+                    ->label('Status')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'completed' => 'مرحل ومعتمد',
-                        'reversed' => 'معكوس',
-                        'pending_review' => 'قيد المراجعة',
-                        default => $state,
+                        'completed' => 'Posted',
+                        'reversed' => 'Reversed',
+                        'pending_review' => 'Pending Review',
+                        default => ucfirst($state),
                     })
                     ->color(fn (string $state): string => match ($state) {
                         'completed' => 'success',
@@ -281,36 +281,36 @@ class AccountingTransactionResource extends Resource
             ->defaultSort('transaction_date', 'desc')
             ->filters([
                 Tables\Filters\SelectFilter::make('transaction_type')
-                    ->label('نوع الحركة')
+                    ->label('Transaction Type')
                     ->options([
-                        'client_collection' => 'تحصيل من عميل',
-                        'partner_personal_expense' => 'مصروف شخصي للشريك',
-                        'company_expense' => 'مصروف أموال الشركة',
-                        'partner_funding' => 'تمويل شريك للصندوق',
-                        'partner_debt_repayment' => 'سداد دين شريك',
-                        'partner_distribution' => 'سحب شريك / توزيع أرباح',
+                        'client_collection' => 'Client Collection',
+                        'partner_personal_expense' => 'Personal Out-of-Pocket Expense',
+                        'company_expense' => 'Company Expense',
+                        'partner_funding' => 'Partner Funding',
+                        'partner_debt_repayment' => 'Partner Debt Repayment',
+                        'partner_distribution' => 'Partner Drawing / Distribution',
                     ]),
 
                 Tables\Filters\SelectFilter::make('partner_id')
-                    ->label('الشريك')
-                    ->options(AccountingPartner::pluck('name_ar', 'id')),
+                    ->label('Partner')
+                    ->options(AccountingPartner::pluck('name_en', 'id')),
 
                 Tables\Filters\SelectFilter::make('client_id')
-                    ->label('العميل')
+                    ->label('Client')
                     ->options(AccountingClient::pluck('name', 'id')),
 
                 Tables\Filters\SelectFilter::make('money_source')
-                    ->label('مصدر الأموال')
+                    ->label('Source of Funds')
                     ->options([
-                        'company_funds' => 'أموال الشركة',
-                        'personal_abdullah' => 'المال الشخصي لعبدالله',
-                        'personal_amer' => 'المال الشخصي لعامر',
+                        'company_funds' => 'Company Treasury',
+                        'personal_abdullah' => 'Abdullah Personal',
+                        'personal_amer' => 'Amer Personal',
                     ]),
 
                 Tables\Filters\Filter::make('transaction_date')
                     ->form([
-                        Forms\Components\DatePicker::make('from')->label('من تاريخ'),
-                        Forms\Components\DatePicker::make('until')->label('إلى تاريخ'),
+                        Forms\Components\DatePicker::make('from')->label('From Date'),
+                        Forms\Components\DatePicker::make('until')->label('Until Date'),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
@@ -320,18 +320,18 @@ class AccountingTransactionResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make()
-                    ->label('عرض القيد'),
+                    ->label('View Journal Entry'),
 
                 Tables\Actions\Action::make('reverse')
-                    ->label('قيد عكسي')
+                    ->label('Reverse Entry')
                     ->icon('heroicon-o-arrow-uturn-left')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->modalHeading('إجراء قيد عكسي لتصحيح الحركة')
-                    ->modalDescription('سيقوم النظام بإنشاء قيد عكسي متوازن يصحح أثر هذه الحركة مع توثيق سبب العكس في سجل التدقيق.')
+                    ->modalHeading('Execute Corrective Reversal Entry')
+                    ->modalDescription('The system will generate a balanced reversing journal entry that neutralizes this transaction and logs the reason in the audit trail.')
                     ->form([
                         Forms\Components\Textarea::make('reversal_reason')
-                            ->label('سبب العكس والتصحيح')
+                            ->label('Reversal Justification')
                             ->required(),
                     ])
                     ->visible(fn (AccountingTransaction $record) => $record->status !== 'reversed' && $record->journal_entry_id)
@@ -339,13 +339,13 @@ class AccountingTransactionResource extends Resource
                         try {
                             $reversal = $record->reverse($data['reversal_reason'], Auth::id());
                             Notification::make()
-                                ->title('تم عكس الحركة بنجاح')
-                                ->body("تم توليد القيد العكسي رقم {$reversal->entry_number}")
+                                ->title('Transaction reversed successfully')
+                                ->body("Generated reversing journal entry #{$reversal->entry_number}")
                                 ->success()
                                 ->send();
                         } catch (\Throwable $e) {
                             Notification::make()
-                                ->title('خطأ في عكس الحركة')
+                                ->title('Reversal Error')
                                 ->body($e->getMessage())
                                 ->danger()
                                 ->send();

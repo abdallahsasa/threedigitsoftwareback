@@ -14,7 +14,7 @@ class ListAccountingTransactions extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('إضافة حركة جديدة'),
+                ->label('New Transaction'),
         ];
     }
 }

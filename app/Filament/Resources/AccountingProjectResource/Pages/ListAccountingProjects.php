@@ -13,7 +13,7 @@ class ListAccountingProjects extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()->label('إضافة مشروع'),
+            Actions\CreateAction::make()->label('New Project'),
         ];
     }
 }

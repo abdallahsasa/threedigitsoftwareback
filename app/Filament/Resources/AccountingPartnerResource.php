@@ -20,13 +20,13 @@ class AccountingPartnerResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
-    protected static ?string $navigationGroup = 'نظام المحاسبة والمالية';
+    protected static ?string $navigationGroup = 'Accounting & Finance';
 
-    protected static ?string $navigationLabel = 'حسابات الشركاء والديون';
+    protected static ?string $navigationLabel = 'Partner Accounts & Debts';
 
-    protected static ?string $modelLabel = 'شريك';
+    protected static ?string $modelLabel = 'Partner';
 
-    protected static ?string $pluralModelLabel = 'حسابات الشركاء';
+    protected static ?string $pluralModelLabel = 'Partners';
 
     protected static ?int $navigationSort = 3;
 
@@ -40,19 +40,20 @@ class AccountingPartnerResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name_ar')
-                    ->label('اسم الشريك (عربي)')
-                    ->required(),
                 Forms\Components\TextInput::make('name_en')
-                    ->label('اسم الشريك (إنجليزي)')
+                    ->label('Partner Name (English)')
+                    ->required(),
+                Forms\Components\TextInput::make('name_ar')
+                    ->label('Partner Name (Arabic)')
                     ->required(),
                 Forms\Components\TextInput::make('initial_debt_balance')
-                    ->label('رصيد الدين المؤكد عند الانتقال (USD)')
+                    ->label('Cutover Verified Debt Balance (USD)')
                     ->numeric()
                     ->prefix('$')
-                    ->required(),
+                    ->required()
+                    ->helperText('Confirmed baseline debt as of October 13, 2026.'),
                 Forms\Components\Textarea::make('notes')
-                    ->label('ملاحظات التسوية والتأسيس')
+                    ->label('Settlement & Cutover Notes')
                     ->columnSpanFull(),
             ]);
     }
@@ -61,19 +62,19 @@ class AccountingPartnerResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name_ar')
-                    ->label('الشريك')
+                Tables\Columns\TextColumn::make('name_en')
+                    ->label('Partner')
                     ->weight('bold')
-                    ->description(fn (AccountingPartner $record) => $record->name_en),
+                    ->description(fn (AccountingPartner $record) => $record->name_ar),
 
                 Tables\Columns\TextColumn::make('initial_debt_balance')
-                    ->label('الرصيد الافتتاحي المؤكد')
+                    ->label('Cutover Verified Debt')
                     ->money('USD')
                     ->badge()
                     ->color('gray'),
 
                 Tables\Columns\TextColumn::make('new_funding')
-                    ->label('تمويل إضافي')
+                    ->label('Additional Funding')
                     ->state(function (AccountingPartner $record) {
                         return (float) AccountingTransaction::where('partner_id', $record->id)
                             ->where('transaction_type', 'partner_funding')
@@ -85,7 +86,7 @@ class AccountingPartnerResource extends Resource
                     ->color('info'),
 
                 Tables\Columns\TextColumn::make('personal_expenses')
-                    ->label('مصاريف شخصية للشركة')
+                    ->label('Out-of-Pocket Expenses')
                     ->state(function (AccountingPartner $record) {
                         return (float) AccountingTransaction::where('partner_id', $record->id)
                             ->where('transaction_type', 'partner_personal_expense')
@@ -97,7 +98,7 @@ class AccountingPartnerResource extends Resource
                     ->color('warning'),
 
                 Tables\Columns\TextColumn::make('repayments')
-                    ->label('سداد ديون مسترد')
+                    ->label('Debt Repayments')
                     ->state(function (AccountingPartner $record) {
                         return (float) AccountingTransaction::where('partner_id', $record->id)
                             ->where('transaction_type', 'partner_debt_repayment')
@@ -109,14 +110,14 @@ class AccountingPartnerResource extends Resource
                     ->color('success'),
 
                 Tables\Columns\TextColumn::make('current_debt')
-                    ->label('صافي الدين المتبقي')
+                    ->label('Outstanding Company Debt')
                     ->state(fn (AccountingPartner $record) => $record->calculated_debt_balance)
                     ->money('USD')
                     ->weight('extrabold')
                     ->color('danger'),
 
                 Tables\Columns\TextColumn::make('drawings')
-                    ->label('السحوبات والتوزيعات (منفصلة)')
+                    ->label('Drawings & Profit Draws')
                     ->state(fn (AccountingPartner $record) => $record->total_drawings)
                     ->money('USD')
                     ->badge()
@@ -124,16 +125,17 @@ class AccountingPartnerResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make()
-                    ->label('كشف حساب الشريك')
-                    ->modalHeading(fn (AccountingPartner $record) => "كشف حساب الشريك: {$record->name_ar}")
+                    ->label('Partner Statement')
+                    ->modalHeading(fn (AccountingPartner $record) => "Financial Statement: {$record->name_en}")
                     ->infolist([
-                        Infolists\Components\Section::make('ملخص المركز المالي للشريك')
+                        Infolists\Components\Section::make('Partner Financial Position Summary')
                             ->schema([
-                                Infolists\Components\TextEntry::make('name_ar')->label('الاسم'),
-                                Infolists\Components\TextEntry::make('initial_debt_balance')->label('رصيد دين الانتقال المؤكد (13 تشرين الأول 2026)')->money('USD'),
-                                Infolists\Components\TextEntry::make('calculated_debt_balance')->label('إجمالي دين الشركة المستحق للشريك حالياً')->money('USD')->color('danger'),
-                                Infolists\Components\TextEntry::make('total_drawings')->label('إجمالي السحوبات والتوزيعات (منفصل عن الدين)')->money('USD')->color('purple'),
-                                Infolists\Components\TextEntry::make('notes')->label('ملاحظات التسوية والتأسيس')->columnSpanFull(),
+                                Infolists\Components\TextEntry::make('name_en')->label('English Name'),
+                                Infolists\Components\TextEntry::make('name_ar')->label('Arabic Name'),
+                                Infolists\Components\TextEntry::make('initial_debt_balance')->label('Cutover Verified Debt (13 Oct 2026)')->money('USD'),
+                                Infolists\Components\TextEntry::make('calculated_debt_balance')->label('Current Net Company Debt Owed to Partner')->money('USD')->color('danger'),
+                                Infolists\Components\TextEntry::make('total_drawings')->label('Total Drawings & Equity Distributions (Segregated)')->money('USD')->color('purple'),
+                                Infolists\Components\TextEntry::make('notes')->label('Settlement & Transition Notes')->columnSpanFull(),
                             ])
                             ->columns(2),
                     ]),

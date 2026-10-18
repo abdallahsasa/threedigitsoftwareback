@@ -1,41 +1,53 @@
 <x-filament-panels::page>
-    <div class="space-y-6" dir="rtl">
+    <div class="space-y-6" dir="ltr">
         <!-- 1. Header with Export Buttons -->
         <div class="p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white">
-                    التقارير والقوائم المالية الرسمية
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-500/20">
+                        Official Statements
+                    </span>
+                    <span class="text-xs text-gray-400">•</span>
+                    <span class="text-xs text-gray-500">Three Digit Software Financial Records</span>
+                </div>
+                <h2 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white mt-1.5">
+                    Financial Statements & Accounting Reports
                 </h2>
-                <p class="text-sm text-gray-500 mt-1">
-                    كشوفات تفصيلية للصندوق، حسابات الشركاء، مستحقات العملاء، المصاريف الشهرية، وأرباح المشاريع.
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Audited statements for company treasury, partner capital & debt accounts, client receivables, operating overhead, and project profitability.
                 </p>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
                 <x-filament::button wire:click="exportExcel" color="success" icon="heroicon-m-arrow-down-tray">
-                    تصدير Excel (.xlsx)
+                    Export Excel (.xlsx)
                 </x-filament::button>
                 <x-filament::button wire:click="exportPdf" color="danger" icon="heroicon-m-document-arrow-down">
-                    تصدير PDF
+                    Export PDF
                 </x-filament::button>
             </div>
         </div>
 
         <!-- 2. Tab Navigation Bar -->
-        <div class="flex flex-wrap items-center gap-2 p-1.5 rounded-2xl bg-gray-100 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700">
-            <button wire:click="setTab('cash_statement')" class="px-4 py-2 rounded-xl text-xs font-bold transition {{ $activeTab === 'cash_statement' ? 'bg-white dark:bg-gray-900 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900' }}">
-                كشف حركة الصندوق
+        <div class="flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-gray-100 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700">
+            <button wire:click="setTab('cash_statement')" class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 {{ $activeTab === 'cash_statement' ? 'bg-white dark:bg-gray-900 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' }}">
+                <x-heroicon-m-banknotes class="w-4 h-4" />
+                Treasury & Cash Flow
             </button>
-            <button wire:click="setTab('partner_statement')" class="px-4 py-2 rounded-xl text-xs font-bold transition {{ $activeTab === 'partner_statement' ? 'bg-white dark:bg-gray-900 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900' }}">
-                كشف حساب شريك
+            <button wire:click="setTab('partner_statement')" class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 {{ $activeTab === 'partner_statement' ? 'bg-white dark:bg-gray-900 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' }}">
+                <x-heroicon-m-user-group class="w-4 h-4" />
+                Partner Account Ledger
             </button>
-            <button wire:click="setTab('client_collections')" class="px-4 py-2 rounded-xl text-xs font-bold transition {{ $activeTab === 'client_collections' ? 'bg-white dark:bg-gray-900 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900' }}">
-                تحصيلات العملاء والمشاريع
+            <button wire:click="setTab('client_collections')" class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 {{ $activeTab === 'client_collections' ? 'bg-white dark:bg-gray-900 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' }}">
+                <x-heroicon-m-building-office class="w-4 h-4" />
+                Client Collections & Receivables
             </button>
-            <button wire:click="setTab('monthly_expenses')" class="px-4 py-2 rounded-xl text-xs font-bold transition {{ $activeTab === 'monthly_expenses' ? 'bg-white dark:bg-gray-900 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900' }}">
-                المصاريف الشهرية
+            <button wire:click="setTab('monthly_expenses')" class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 {{ $activeTab === 'monthly_expenses' ? 'bg-white dark:bg-gray-900 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' }}">
+                <x-heroicon-m-receipt-percent class="w-4 h-4" />
+                Operating Overhead
             </button>
-            <button wire:click="setTab('project_costs')" class="px-4 py-2 rounded-xl text-xs font-bold transition {{ $activeTab === 'project_costs' ? 'bg-white dark:bg-gray-900 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900' }}">
-                تكاليف وأرباح المشاريع
+            <button wire:click="setTab('project_costs')" class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 {{ $activeTab === 'project_costs' ? 'bg-white dark:bg-gray-900 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' }}">
+                <x-heroicon-m-briefcase class="w-4 h-4" />
+                Project Margins & Costing
             </button>
         </div>
 
@@ -45,48 +57,51 @@
         @if($activeTab === 'cash_statement')
         <div class="space-y-4">
             <!-- Summary KPI -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="p-4 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-center">
-                    <span class="text-xs text-gray-500">إجمالي المقبوضات (وارد)</span>
-                    <div class="text-2xl font-bold text-emerald-600 mt-1">${{ number_format($cashInflows, 2) }}</div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-center shadow-sm">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Total Cash Inflows</span>
+                    <div class="text-3xl font-extrabold text-emerald-600 mt-1">${{ number_format($cashInflows, 2) }}</div>
+                    <span class="text-xs text-gray-400 mt-1 inline-block">Collections & Treasury Injections</span>
                 </div>
-                <div class="p-4 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-center">
-                    <span class="text-xs text-gray-500">إجمالي المدفوعات (صادر)</span>
-                    <div class="text-2xl font-bold text-rose-600 mt-1">${{ number_format($cashOutflows, 2) }}</div>
+                <div class="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-center shadow-sm">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Total Cash Outflows</span>
+                    <div class="text-3xl font-extrabold text-rose-600 mt-1">${{ number_format($cashOutflows, 2) }}</div>
+                    <span class="text-xs text-gray-400 mt-1 inline-block">Paid from Company Treasury</span>
                 </div>
-                <div class="p-4 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-center">
-                    <span class="text-xs text-gray-500">صافي رصيد الصندوق الحالي</span>
-                    <div class="text-2xl font-extrabold text-amber-600 mt-1">${{ number_format($cashNet, 2) }}</div>
+                <div class="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-center shadow-sm">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Net Treasury Balance</span>
+                    <div class="text-3xl font-extrabold text-amber-600 dark:text-amber-400 mt-1">${{ number_format($cashNet, 2) }}</div>
+                    <span class="text-xs text-emerald-600 dark:text-emerald-400 mt-1 inline-block font-medium">Verified Cutover Baseline: $250.00</span>
                 </div>
             </div>
 
             <div class="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
-                <table class="w-full text-right text-xs">
+                <table class="w-full text-left text-xs">
                     <thead class="bg-gray-50 dark:bg-gray-800 text-gray-500 font-semibold border-b border-gray-200 dark:border-gray-800">
                         <tr>
-                            <th class="p-3.5">التاريخ</th>
-                            <th class="p-3.5">رقم القيد</th>
-                            <th class="p-3.5">وارد (مدين)</th>
-                            <th class="p-3.5">صادر (دائن)</th>
-                            <th class="p-3.5">البيان والتفاصيل</th>
+                            <th class="p-3.5">Date</th>
+                            <th class="p-3.5">Entry #</th>
+                            <th class="p-3.5">Debit (Inflow)</th>
+                            <th class="p-3.5">Credit (Outflow)</th>
+                            <th class="p-3.5">Description & Reference</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                         @forelse($cashLines as $l)
-                        <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/20">
+                        <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition">
                             <td class="p-3.5">{{ $l->journalEntry->entry_date->format('Y-m-d') }}</td>
-                            <td class="p-3.5 font-mono text-gray-500">{{ $l->journalEntry->entry_number }}</td>
+                            <td class="p-3.5 font-mono text-gray-500 font-medium">{{ $l->journalEntry->entry_number }}</td>
                             <td class="p-3.5 font-bold text-emerald-600">
                                 {{ (float)$l->debit > 0 ? '$' . number_format((float)$l->debit, 2) : '-' }}
                             </td>
                             <td class="p-3.5 font-bold text-rose-600">
                                 {{ (float)$l->credit > 0 ? '$' . number_format((float)$l->credit, 2) : '-' }}
                             </td>
-                            <td class="p-3.5">{{ $l->description ?: $l->journalEntry->description }}</td>
+                            <td class="p-3.5 text-gray-700 dark:text-gray-300">{{ $l->description ?: $l->journalEntry->description }}</td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="5" class="p-6 text-center text-gray-500">لا توجد حركات نقدية مسجلة</td>
+                            <td colspan="5" class="p-8 text-center text-gray-500">No cash entries found.</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -98,56 +113,65 @@
         <!-- TAB 2: Partner Statement -->
         @if($activeTab === 'partner_statement')
         <div class="space-y-4">
-            <div class="p-4 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 flex items-center justify-between gap-4">
+            <div class="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
-                    <span class="text-xs font-bold text-gray-700 dark:text-gray-300">اختر الشريك:</span>
-                    <select wire:model.live="selectedPartnerId" class="text-xs rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-semibold">
+                    <span class="text-xs font-bold text-gray-700 dark:text-gray-300">Select Partner:</span>
+                    <select wire:model.live="selectedPartnerId" class="text-xs rounded-xl border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-semibold py-2 px-3">
                         @foreach($partners as $p)
-                            <option value="{{ $p->id }}">{{ $p->name_ar }} ({{ $p->name_en }})</option>
+                            <option value="{{ $p->id }}">{{ $p->name_en }} ({{ $p->name_ar }})</option>
                         @endforeach
                     </select>
                 </div>
                 @if($selectedPartner)
-                <div class="flex items-center gap-4 text-xs">
-                    <span>رصيد الدين المؤكد عند الانتقال: <strong>${{ number_format($selectedPartner->initial_debt_balance, 2) }}</strong></span>
-                    <span>صافي الدين المستحق حالياً: <strong class="text-amber-600 dark:text-amber-400">${{ number_format($selectedPartner->calculated_debt_balance, 2) }}</strong></span>
-                    <span>إجمالي السحوبات والتوزيعات: <strong class="text-purple-600">${{ number_format($selectedPartner->total_drawings, 2) }}</strong></span>
+                <div class="flex flex-wrap items-center gap-4 text-xs">
+                    <div class="px-3 py-1.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                        Cutover Baseline: <strong>${{ number_format($selectedPartner->initial_debt_balance, 2) }}</strong>
+                    </div>
+                    <div class="px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                        Current Outstanding Debt: <strong class="text-base">${{ number_format($selectedPartner->calculated_debt_balance, 2) }}</strong>
+                    </div>
+                    <div class="px-3 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                        Total Drawings / Distributions: <strong>${{ number_format($selectedPartner->total_drawings, 2) }}</strong>
+                    </div>
                 </div>
                 @endif
             </div>
 
             <!-- Partner Debt Ledger Table -->
             <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
-                <div class="p-3.5 bg-gray-50 dark:bg-gray-800 font-bold text-xs text-gray-800 dark:text-gray-200 border-b border-gray-200 dark:border-gray-800">
-                    كشف حركات دين الشريك (تمويل، مصاريف شخصية، سداد)
+                <div class="p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/40 flex items-center justify-between">
+                    <h3 class="font-bold text-gray-900 dark:text-white text-sm">
+                        Debt & Funding Ledger — {{ $selectedPartner?->name_en }}
+                    </h3>
+                    <span class="text-xs text-gray-500">Credits increase debt owed to partner | Debits reflect repayments</span>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-right text-xs">
-                        <thead class="text-gray-500 font-semibold border-b border-gray-100 dark:border-gray-800">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-gray-50 dark:bg-gray-800 text-gray-500 font-semibold border-b border-gray-200 dark:border-gray-800">
                             <tr>
-                                <th class="p-3">التاريخ</th>
-                                <th class="p-3">رقم القيد</th>
-                                <th class="p-3">مدين (سداد مسترد للشريك)</th>
-                                <th class="p-3">دائن (تمويل / مصروف شخصي)</th>
-                                <th class="p-3">البيان</th>
+                                <th class="p-3.5">Date</th>
+                                <th class="p-3.5">Entry #</th>
+                                <th class="p-3.5">Debit (Repayment / Reduction)</th>
+                                <th class="p-3.5">Credit (Funding / Out-of-Pocket Expense)</th>
+                                <th class="p-3.5">Notes & Journal Narration</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                             @forelse($partnerDebtLines as $l)
-                            <tr>
-                                <td class="p-3">{{ $l->journalEntry->entry_date->format('Y-m-d') }}</td>
-                                <td class="p-3 font-mono text-gray-500">{{ $l->journalEntry->entry_number }}</td>
-                                <td class="p-3 font-bold text-emerald-600">
+                            <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition">
+                                <td class="p-3.5">{{ $l->journalEntry->entry_date->format('Y-m-d') }}</td>
+                                <td class="p-3.5 font-mono text-gray-500">{{ $l->journalEntry->entry_number }}</td>
+                                <td class="p-3.5 font-bold text-purple-600">
                                     {{ (float)$l->debit > 0 ? '$' . number_format((float)$l->debit, 2) : '-' }}
                                 </td>
-                                <td class="p-3 font-bold text-amber-600">
+                                <td class="p-3.5 font-bold text-amber-600 dark:text-amber-400">
                                     {{ (float)$l->credit > 0 ? '$' . number_format((float)$l->credit, 2) : '-' }}
                                 </td>
-                                <td class="p-3">{{ $l->description }}</td>
+                                <td class="p-3.5 text-gray-700 dark:text-gray-300">{{ $l->description ?: $l->journalEntry->description }}</td>
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="5" class="p-5 text-center text-gray-500">لا توجد حركات مسجلة على حساب الدين بعد نقطة الانتقال</td>
+                                <td colspan="5" class="p-6 text-center text-gray-500">No partner debt journal lines recorded.</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -155,34 +179,35 @@
                 </div>
             </div>
 
-            <!-- Partner Drawings Ledger Table -->
+            <!-- Drawings & Distributions Table -->
             <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
-                <div class="p-3.5 bg-purple-50 dark:bg-purple-950/20 font-bold text-xs text-purple-900 dark:text-purple-300 border-b border-purple-200 dark:border-purple-900/30">
-                    كشف سحوبات وتوزيعات الشريك (منفصلة تماماً عن دين التمويل)
+                <div class="p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/40 flex items-center justify-between">
+                    <h3 class="font-bold text-gray-900 dark:text-white text-sm">
+                        Partner Drawings & Equity Distributions — {{ $selectedPartner?->name_en }}
+                    </h3>
+                    <span class="text-xs text-gray-500">Withdrawals of profits / personal draws (Equity Account 3101/3102)</span>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-right text-xs">
-                        <thead class="text-gray-500 font-semibold border-b border-gray-100 dark:border-gray-800">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-gray-50 dark:bg-gray-800 text-gray-500 font-semibold border-b border-gray-200 dark:border-gray-800">
                             <tr>
-                                <th class="p-3">التاريخ</th>
-                                <th class="p-3">رقم القيد</th>
-                                <th class="p-3">مبلغ السحب / التوزيع</th>
-                                <th class="p-3">البيان</th>
+                                <th class="p-3.5">Date</th>
+                                <th class="p-3.5">Entry #</th>
+                                <th class="p-3.5">Drawing Amount (Debit)</th>
+                                <th class="p-3.5">Description</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                             @forelse($partnerDrawingsLines as $l)
-                            <tr>
-                                <td class="p-3">{{ $l->journalEntry->entry_date->format('Y-m-d') }}</td>
-                                <td class="p-3 font-mono text-gray-500">{{ $l->journalEntry->entry_number }}</td>
-                                <td class="p-3 font-bold text-purple-600">
-                                    ${{ number_format((float)$l->debit, 2) }}
-                                </td>
-                                <td class="p-3">{{ $l->description }}</td>
+                            <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition">
+                                <td class="p-3.5">{{ $l->journalEntry->entry_date->format('Y-m-d') }}</td>
+                                <td class="p-3.5 font-mono text-gray-500">{{ $l->journalEntry->entry_number }}</td>
+                                <td class="p-3.5 font-bold text-rose-600">${{ number_format((float)$l->debit, 2) }}</td>
+                                <td class="p-3.5 text-gray-700 dark:text-gray-300">{{ $l->description ?: $l->journalEntry->description }}</td>
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="4" class="p-5 text-center text-gray-500">لا توجد سحوبات مسجلة للشريك</td>
+                                <td colspan="4" class="p-6 text-center text-gray-500">No partner drawings recorded.</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -194,111 +219,156 @@
 
         <!-- TAB 3: Client Collections -->
         @if($activeTab === 'client_collections')
-        <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-right text-xs">
-                    <thead class="bg-gray-50 dark:bg-gray-800 text-gray-500 font-semibold border-b border-gray-200 dark:border-gray-800">
-                        <tr>
-                            <th class="p-3.5">العميل</th>
-                            <th class="p-3.5">المشاريع</th>
-                            <th class="p-3.5">المقبوض فعلياً</th>
-                            <th class="p-3.5">مستحقات محتملة (تحتاج تأكيد)</th>
-                            <th class="p-3.5">ملاحظات</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                        @foreach($clients as $c)
-                        <tr>
-                            <td class="p-3.5 font-bold text-gray-900 dark:text-white">{{ $c->name }}</td>
-                            <td class="p-3.5">{{ $c->projects->pluck('name')->implode(', ') ?: '-' }}</td>
-                            <td class="p-3.5 font-bold text-emerald-600">
-                                ${{ number_format((float) \App\Models\AccountingTransaction::where('client_id', $c->id)->where('transaction_type', 'client_collection')->sum('amount'), 2) }}
-                            </td>
-                            <td class="p-3.5">
-                                @if((float)$c->potential_receivable_amount > 0)
-                                    <span class="px-2 py-0.5 rounded font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
-                                        ${{ number_format((float)$c->potential_receivable_amount, 2) }}
+        <div class="space-y-4">
+            <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-gray-900 dark:text-white text-sm">Client Collections & Potential Receivables</h3>
+                        <p class="text-xs text-gray-500 mt-0.5">Realized cash receipts vs potential balances pending client confirmation</p>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-gray-50 dark:bg-gray-800 text-gray-500 font-semibold border-b border-gray-200 dark:border-gray-800">
+                            <tr>
+                                <th class="p-3.5">Client / Organization</th>
+                                <th class="p-3.5">Contact Person</th>
+                                <th class="p-3.5">Total Collected (Cash Inflow)</th>
+                                <th class="p-3.5">Potential Receivable</th>
+                                <th class="p-3.5">Projects Count</th>
+                                <th class="p-3.5">Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                            @forelse($clients as $c)
+                            <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition">
+                                <td class="p-3.5 font-bold text-gray-900 dark:text-white">{{ $c->name }}</td>
+                                <td class="p-3.5 text-gray-600 dark:text-gray-400">{{ $c->contact_person ?: '-' }}</td>
+                                <td class="p-3.5 font-bold text-emerald-600">${{ number_format($c->total_collected, 2) }}</td>
+                                <td class="p-3.5">
+                                    @if((float)$c->potential_receivable_amount > 0)
+                                        <span class="px-2 py-0.5 rounded font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                                            ${{ number_format($c->potential_receivable_amount, 2) }}
+                                        </span>
+                                    @else
+                                        <span class="text-gray-400">$0.00</span>
+                                    @endif
+                                </td>
+                                <td class="p-3.5">
+                                    <span class="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium">
+                                        {{ $c->projects->count() }}
                                     </span>
-                                @else
-                                    <span class="text-gray-400">-</span>
-                                @endif
-                            </td>
-                            <td class="p-3.5 text-gray-500">{{ $c->notes ?: '-' }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                                </td>
+                                <td class="p-3.5 text-gray-600 dark:text-gray-400 max-w-xs truncate">{{ $c->notes ?: '-' }}</td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="6" class="p-8 text-center text-gray-500">No client accounts recorded yet.</td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
         @endif
 
         <!-- TAB 4: Monthly Expenses -->
         @if($activeTab === 'monthly_expenses')
-        <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-right text-xs">
-                    <thead class="bg-gray-50 dark:bg-gray-800 text-gray-500 font-semibold border-b border-gray-200 dark:border-gray-800">
-                        <tr>
-                            <th class="p-3.5">الشهر</th>
-                            <th class="p-3.5">التصنيف</th>
-                            <th class="p-3.5">إجمالي المبلغ (USD)</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                        @forelse($monthlyExpenses as $me)
-                        <tr>
-                            <td class="p-3.5 font-mono font-bold">{{ $me->month }}</td>
-                            <td class="p-3.5 font-medium">{{ $me->expense_category ?: 'أخرى' }}</td>
-                            <td class="p-3.5 font-bold text-rose-600">${{ number_format((float)$me->total, 2) }}</td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="3" class="p-5 text-center text-gray-500">لا توجد مصاريف مسجلة بعد</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+        <div class="space-y-4">
+            <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-gray-900 dark:text-white text-sm">Monthly Operating Overhead Statement</h3>
+                        <p class="text-xs text-gray-500 mt-0.5">Aggregated by month and expense category (Rent, Software, Office, Marketing, Equipment)</p>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-gray-50 dark:bg-gray-800 text-gray-500 font-semibold border-b border-gray-200 dark:border-gray-800">
+                            <tr>
+                                <th class="p-3.5">Month</th>
+                                <th class="p-3.5">Category</th>
+                                <th class="p-3.5">Total Amount (USD)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                            @forelse($monthlyExpenses as $exp)
+                            <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition">
+                                <td class="p-3.5 font-mono font-medium">{{ $exp->month }}</td>
+                                <td class="p-3.5 font-semibold text-gray-900 dark:text-white">
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200">
+                                        {{ $exp->expense_category ?: 'General Operating' }}
+                                    </span>
+                                </td>
+                                <td class="p-3.5 font-bold text-rose-600">${{ number_format((float)$exp->total, 2) }}</td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="3" class="p-8 text-center text-gray-500">No monthly expense data recorded.</td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
         @endif
 
-        <!-- TAB 5: Project Costs & Profitability -->
+        <!-- TAB 5: Project Costs & Margins -->
         @if($activeTab === 'project_costs')
-        <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-right text-xs">
-                    <thead class="bg-gray-50 dark:bg-gray-800 text-gray-500 font-semibold border-b border-gray-200 dark:border-gray-800">
-                        <tr>
-                            <th class="p-3.5">المشروع</th>
-                            <th class="p-3.5">العميل</th>
-                            <th class="p-3.5">قيمة العقد</th>
-                            <th class="p-3.5">المقبوض فعلياً</th>
-                            <th class="p-3.5">المتبقي على العقد</th>
-                            <th class="p-3.5">التكاليف المباشرة</th>
-                            <th class="p-3.5">هامش الربح المتوقع</th>
-                            <th class="p-3.5">الحالة</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                        @foreach($projects as $p)
-                        <tr>
-                            <td class="p-3.5 font-bold text-gray-900 dark:text-white">{{ $p->name }}</td>
-                            <td class="p-3.5">{{ $p->client?->name ?: '-' }}</td>
-                            <td class="p-3.5 font-bold">${{ number_format((float)$p->total_price, 2) }}</td>
-                            <td class="p-3.5 font-bold text-emerald-600">${{ number_format($p->total_collected, 2) }}</td>
-                            <td class="p-3.5">${{ number_format($p->remaining_balance, 2) }}</td>
-                            <td class="p-3.5 text-rose-600">${{ number_format((float)$p->direct_costs, 2) }}</td>
-                            <td class="p-3.5 font-bold text-blue-600">${{ number_format($p->net_profit, 2) }}</td>
-                            <td class="p-3.5">
-                                <span class="px-2 py-0.5 rounded text-xs font-semibold
-                                    {{ $p->status === 'done' ? 'bg-emerald-100 text-emerald-800' : ($p->status === 'cancelled' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800') }}">
-                                    {{ $p->status }}
-                                </span>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+        <div class="space-y-4">
+            <div class="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-gray-900 dark:text-white text-sm">Project Margins & Direct Costing</h3>
+                        <p class="text-xs text-gray-500 mt-0.5">Contract values, realized collections, direct execution labor, and gross profit margin</p>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-gray-50 dark:bg-gray-800 text-gray-500 font-semibold border-b border-gray-200 dark:border-gray-800">
+                            <tr>
+                                <th class="p-3.5">Project Name</th>
+                                <th class="p-3.5">Client</th>
+                                <th class="p-3.5">Contract Value</th>
+                                <th class="p-3.5">Collected</th>
+                                <th class="p-3.5">Direct Costs</th>
+                                <th class="p-3.5">Gross Margin</th>
+                                <th class="p-3.5">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                            @forelse($projects as $prj)
+                            @php
+                                $margin = (float)$prj->total_collected - (float)$prj->direct_costs;
+                            @endphp
+                            <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition">
+                                <td class="p-3.5 font-bold text-gray-900 dark:text-white">{{ $prj->name }}</td>
+                                <td class="p-3.5 text-gray-600 dark:text-gray-400">{{ $prj->client?->name ?: '-' }}</td>
+                                <td class="p-3.5 font-bold text-gray-800 dark:text-gray-200">${{ number_format($prj->total_price, 2) }}</td>
+                                <td class="p-3.5 font-bold text-emerald-600">${{ number_format($prj->total_collected, 2) }}</td>
+                                <td class="p-3.5 font-bold text-rose-600">${{ number_format($prj->direct_costs, 2) }}</td>
+                                <td class="p-3.5 font-extrabold {{ $margin >= 0 ? 'text-emerald-600' : 'text-rose-600' }}">
+                                    ${{ number_format($margin, 2) }}
+                                </td>
+                                <td class="p-3.5">
+                                    <span class="px-2 py-0.5 rounded text-xs font-semibold
+                                        @if($prj->status === 'done') bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300
+                                        @elseif($prj->status === 'in_progress') bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300
+                                        @else bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300 @endif">
+                                        {{ ucwords(str_replace('_', ' ', $prj->status)) }}
+                                    </span>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="7" class="p-8 text-center text-gray-500">No projects recorded yet.</td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
         @endif

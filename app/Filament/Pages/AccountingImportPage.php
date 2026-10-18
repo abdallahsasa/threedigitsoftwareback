@@ -21,11 +21,11 @@ class AccountingImportPage extends Page implements HasForms
 
     protected static string $view = 'filament.pages.accounting-import-page';
 
-    protected static ?string $navigationGroup = 'نظام المحاسبة والمالية';
+    protected static ?string $navigationGroup = 'Accounting & Finance';
 
-    protected static ?string $navigationLabel = 'استيراد ملف Excel';
+    protected static ?string $navigationLabel = 'Excel Importer';
 
-    protected static ?string $title = 'أداة استيراد ومطابقة ملف Excel المحاسبي';
+    protected static ?string $title = 'Excel Importer & Ledger Synchronization';
 
     protected static ?int $navigationSort = 7;
 
@@ -59,7 +59,7 @@ class AccountingImportPage extends Page implements HasForms
     public function handleFileUpload(): void
     {
         if (!$this->uploadedFile) {
-            Notification::make()->title('يرجى اختيار ملف إكسل أولاً')->warning()->send();
+            Notification::make()->title('Please choose an Excel (.xlsx) file first')->warning()->send();
             return;
         }
 
@@ -68,7 +68,7 @@ class AccountingImportPage extends Page implements HasForms
         $this->previewData = $service->preview($path);
         $this->selectedSource = 'upload';
 
-        Notification::make()->title('تمت قراءة ومعاينة الملف بنجاح')->success()->send();
+        Notification::make()->title('Excel file parsed and preview generated successfully')->success()->send();
     }
 
     public function executeImport(): void
@@ -78,7 +78,7 @@ class AccountingImportPage extends Page implements HasForms
             : base_path('database/data/Three_Digit_Software_Accounting_Dashboard.xlsx');
 
         if (!file_exists($path)) {
-            Notification::make()->title('الملف غير موجود')->danger()->send();
+            Notification::make()->title('Target file not found')->danger()->send();
             return;
         }
 
@@ -90,8 +90,8 @@ class AccountingImportPage extends Page implements HasForms
         $this->previewData = $service->preview($path);
 
         Notification::make()
-            ->title('اكتملت عملية الاستيراد بنجاح')
-            ->body("تم استيراد {$result['imported_rows']} حركة، وتعليق {$result['flagged_rows']} للمراجعة، وكشف {$result['duplicate_rows']} حركة مكررة تم تجنبها.")
+            ->title('Excel Import Completed Successfully')
+            ->body("Imported {$result['imported_rows']} records, staged {$result['flagged_rows']} in review queue, and prevented {$result['duplicate_rows']} duplicate transactions.")
             ->success()
             ->send();
     }

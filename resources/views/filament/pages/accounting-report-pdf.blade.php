@@ -1,32 +1,34 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <title>Three Digit Software - التقرير المالي</title>
+    <title>Three Digit Software - Financial Statement</title>
     <style>
         body {
             font-family: DejaVu Sans, sans-serif;
             font-size: 11px;
-            direction: rtl;
-            text-align: right;
-            color: #333;
-            margin: 20px;
+            direction: ltr;
+            text-align: left;
+            color: #1f2937;
+            margin: 25px;
+            line-height: 1.4;
         }
         .header {
-            text-align: center;
-            border-bottom: 2px solid #d97706;
-            padding-bottom: 15px;
+            text-align: left;
+            border-bottom: 2px solid #f59e0b;
+            padding-bottom: 12px;
             margin-bottom: 20px;
         }
         .header h1 {
             margin: 0;
-            color: #111;
+            color: #111827;
             font-size: 18px;
+            font-weight: bold;
         }
         .header p {
             margin: 4px 0 0;
-            color: #666;
-            font-size: 11px;
+            color: #6b7280;
+            font-size: 10px;
         }
         table {
             width: 100%;
@@ -34,19 +36,20 @@
             margin-top: 15px;
         }
         th, td {
-            border: 1px solid #ddd;
-            padding: 7px;
-            text-align: right;
+            border: 1px solid #e5e7eb;
+            padding: 7px 10px;
+            text-align: left;
+            font-size: 10px;
         }
         th {
-            background-color: #f8f9fa;
-            color: #111;
+            background-color: #f9fafb;
+            color: #374151;
             font-weight: bold;
         }
         .summary-box {
             background: #fffbeb;
-            border: 1px solid #fef3c7;
-            padding: 10px;
+            border: 1px solid #fde68a;
+            padding: 12px;
             margin-bottom: 15px;
             border-radius: 6px;
         }
@@ -57,32 +60,33 @@
             margin-top: 30px;
             text-align: center;
             font-size: 9px;
-            color: #999;
-            border-top: 1px solid #eee;
+            color: #9ca3af;
+            border-top: 1px solid #f3f4f6;
             padding-top: 10px;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>Three Digit Software</h1>
-        <p>التقرير المحاسبي الرسمي - تاريخ الاستخراج: {{ now()->format('Y-m-d H:i') }}</p>
+        <h1>Three Digit Software — Official Financial Statement</h1>
+        <p>Report Category: {{ ucwords(str_replace('_', ' ', $activeTab)) }} | Generated on: {{ now()->format('Y-m-d H:i') }} | Currency: USD</p>
     </div>
 
     @if($activeTab === 'cash_statement')
         <div class="summary-box">
-            <strong>ملخص حركة الصندوق:</strong>
-            وارد: ${{ number_format($cashInflows, 2) }} | صادر: ${{ number_format($cashOutflows, 2) }} | الصافي: ${{ number_format($cashNet, 2) }}
+            <strong>Treasury Overview:</strong> Total Inflows: <span class="text-emerald">${{ number_format($cashInflows, 2) }}</span> | 
+            Total Outflows: <span class="text-rose">${{ number_format($cashOutflows, 2) }}</span> | 
+            <strong>Net Treasury Balance: ${{ number_format($cashNet, 2) }}</strong> (Cutover Baseline: $250.00)
         </div>
 
         <table>
             <thead>
                 <tr>
-                    <th>التاريخ</th>
-                    <th>رقم القيد</th>
-                    <th>وارد (USD)</th>
-                    <th>صادر (USD)</th>
-                    <th>البيان</th>
+                    <th>Date</th>
+                    <th>Entry #</th>
+                    <th>Debit (Inflow)</th>
+                    <th>Credit (Outflow)</th>
+                    <th>Description</th>
                 </tr>
             </thead>
             <tbody>
@@ -99,21 +103,21 @@
         </table>
     @elseif($activeTab === 'partner_statement' && $selectedPartner)
         <div class="summary-box">
-            <strong>كشف حساب الشريك: {{ $selectedPartner->name_ar }}</strong><br>
-            رصيد الدين المؤكد عند الانتقال: ${{ number_format($selectedPartner->initial_debt_balance, 2) }} |
-            صافي الدين المتبقي المستحق على الشركة: ${{ number_format($selectedPartner->calculated_debt_balance, 2) }} |
-            إجمالي السحوبات والتوزيعات: ${{ number_format($selectedPartner->total_drawings, 2) }}
+            <strong>Partner: {{ $selectedPartner->name_en }} ({{ $selectedPartner->name_ar }})</strong><br>
+            Cutover Verified Debt (13 Oct 2026): <strong>${{ number_format($selectedPartner->initial_debt_balance, 2) }}</strong> | 
+            Current Outstanding Balance: <strong>${{ number_format($selectedPartner->calculated_debt_balance, 2) }}</strong> | 
+            Total Drawings / Distributions: <strong>${{ number_format($selectedPartner->total_drawings, 2) }}</strong>
         </div>
 
-        <h3>حركات دين الشريك (تمويل، مصاريف شخصية، سداد)</h3>
+        <h3>1. Debt & Out-of-Pocket Funding Ledger</h3>
         <table>
             <thead>
                 <tr>
-                    <th>التاريخ</th>
-                    <th>رقم القيد</th>
-                    <th>سداد مسترد (مدين)</th>
-                    <th>تمويل / مصروف (دائن)</th>
-                    <th>البيان</th>
+                    <th>Date</th>
+                    <th>Entry #</th>
+                    <th>Debit (Repayment)</th>
+                    <th>Credit (Funding / Out-of-Pocket)</th>
+                    <th>Description</th>
                 </tr>
             </thead>
             <tbody>
@@ -121,9 +125,9 @@
                 <tr>
                     <td>{{ $l->journalEntry->entry_date->format('Y-m-d') }}</td>
                     <td>{{ $l->journalEntry->entry_number }}</td>
-                    <td class="text-emerald">{{ (float)$l->debit > 0 ? '$' . number_format((float)$l->debit, 2) : '-' }}</td>
-                    <td class="text-rose">{{ (float)$l->credit > 0 ? '$' . number_format((float)$l->credit, 2) : '-' }}</td>
-                    <td>{{ $l->description }}</td>
+                    <td>{{ (float)$l->debit > 0 ? '$' . number_format((float)$l->debit, 2) : '-' }}</td>
+                    <td class="text-bold">{{ (float)$l->credit > 0 ? '$' . number_format((float)$l->credit, 2) : '-' }}</td>
+                    <td>{{ $l->description ?: $l->journalEntry->description }}</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -132,23 +136,19 @@
         <table>
             <thead>
                 <tr>
-                    <th>المشروع</th>
-                    <th>العميل</th>
-                    <th>قيمة العقد</th>
-                    <th>المقبوض فعلياً</th>
-                    <th>التكاليف المباشرة</th>
-                    <th>هامش الربح</th>
+                    <th>Client / Project</th>
+                    <th>Total Collected</th>
+                    <th>Potential Receivable</th>
+                    <th>Notes</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($projects as $p)
+                @foreach($clients as $c)
                 <tr>
-                    <td>{{ $p->name }}</td>
-                    <td>{{ $p->client?->name ?: '-' }}</td>
-                    <td>${{ number_format((float)$p->total_price, 2) }}</td>
-                    <td class="text-emerald">${{ number_format($p->total_collected, 2) }}</td>
-                    <td class="text-rose">${{ number_format((float)$p->direct_costs, 2) }}</td>
-                    <td>${{ number_format($p->net_profit, 2) }}</td>
+                    <td class="text-bold">{{ $c->name }}</td>
+                    <td class="text-emerald">${{ number_format($c->total_collected, 2) }}</td>
+                    <td>${{ number_format($c->potential_receivable_amount, 2) }}</td>
+                    <td>{{ $c->notes ?: '-' }}</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -156,7 +156,7 @@
     @endif
 
     <div class="footer">
-        تم استخراج هذا التقرير آلياً من نظام المحاسبة الداخلي لشركة Three Digit Software. كافة القيود مسجلة على قاعدة البيانات.
+        Three Digit Software Internal Accounting System • Confirmed Cutover October 13, 2026 • Confidential Document
     </div>
 </body>
 </html>

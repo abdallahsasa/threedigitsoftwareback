@@ -21,11 +21,11 @@ class AccountingReportsPage extends Page
 
     protected static string $view = 'filament.pages.accounting-reports-page';
 
-    protected static ?string $navigationGroup = 'نظام المحاسبة والمالية';
+    protected static ?string $navigationGroup = 'Accounting & Finance';
 
-    protected static ?string $navigationLabel = 'التقارير المالية';
+    protected static ?string $navigationLabel = 'Financial Statements';
 
-    protected static ?string $title = 'التقارير المالية والقوائم المحاسبية';
+    protected static ?string $title = 'Financial Statements & Reports';
 
     protected static ?int $navigationSort = 8;
 
@@ -58,29 +58,29 @@ class AccountingReportsPage extends Page
     {
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setRightToLeft(true);
+        $sheet->setRightToLeft(false);
 
         $reportTitle = match ($this->activeTab) {
-            'cash_statement' => 'كشف حركة الصندوق والنقدية',
-            'partner_statement' => 'كشف حساب الشريك',
-            'client_collections' => 'تقرير تحصيلات العملاء والمشاريع',
-            'monthly_expenses' => 'تقرير المصاريف التشغيلية الشهرية',
-            'project_costs' => 'تقرير تكاليف وأرباح المشاريع',
-            default => 'تقرير مالي',
+            'cash_statement' => 'Cash Flow Statement',
+            'partner_statement' => 'Partner Account Ledger',
+            'client_collections' => 'Client Collections & Receivables',
+            'monthly_expenses' => 'Operating Expenses Statement',
+            'project_costs' => 'Project Profitability & Cost Analysis',
+            default => 'Financial Statement',
         };
 
         $sheet->setCellValue('A1', 'Three Digit Software - ' . $reportTitle);
-        $sheet->setCellValue('A2', 'تاريخ استخراج التقرير: ' . now()->format('Y-m-d H:i'));
+        $sheet->setCellValue('A2', 'Generated At: ' . now()->format('Y-m-d H:i'));
 
         $row = 4;
 
         if ($this->activeTab === 'cash_statement') {
-            $sheet->setCellValue('A' . $row, 'التاريخ');
-            $sheet->setCellValue('B' . $row, 'رقم الحركة');
-            $sheet->setCellValue('C' . $row, 'نوع الحركة');
-            $sheet->setCellValue('D' . $row, 'وارد (مقبوضات)');
-            $sheet->setCellValue('E' . $row, 'صادر (مدفوعات)');
-            $sheet->setCellValue('F' . $row, 'البيان');
+            $sheet->setCellValue('A' . $row, 'Date');
+            $sheet->setCellValue('B' . $row, 'Entry #');
+            $sheet->setCellValue('C' . $row, 'Reference Type');
+            $sheet->setCellValue('D' . $row, 'Debit (Inflow)');
+            $sheet->setCellValue('E' . $row, 'Credit (Outflow)');
+            $sheet->setCellValue('F' . $row, 'Description');
 
             $lines = JournalEntryLine::whereHas('account', fn($q) => $q->where('code', '1010'))
                 ->whereHas('journalEntry', fn($q) => $q->where('status', 'posted'))
@@ -98,12 +98,12 @@ class AccountingReportsPage extends Page
             }
         } elseif ($this->activeTab === 'partner_statement') {
             $partner = AccountingPartner::find($this->selectedPartnerId);
-            $sheet->setCellValue('A3', 'الشريك: ' . ($partner?->name_ar ?: ''));
-            $sheet->setCellValue('A' . $row, 'التاريخ');
-            $sheet->setCellValue('B' . $row, 'رقم الحركة');
-            $sheet->setCellValue('C' . $row, 'مدين (سداد مسترد)');
-            $sheet->setCellValue('D' . $row, 'دائن (تمويل / مصروف شخصي)');
-            $sheet->setCellValue('E' . $row, 'البيان');
+            $sheet->setCellValue('A3', 'Partner: ' . ($partner?->name_en ?: $partner?->name_ar ?: ''));
+            $sheet->setCellValue('A' . $row, 'Date');
+            $sheet->setCellValue('B' . $row, 'Entry #');
+            $sheet->setCellValue('C' . $row, 'Debit (Repayment / Reduction)');
+            $sheet->setCellValue('D' . $row, 'Credit (Funding / Out-of-Pocket Expense)');
+            $sheet->setCellValue('E' . $row, 'Description');
 
             if ($partner) {
                 $lines = JournalEntryLine::where('partner_id', $partner->id)
@@ -124,13 +124,13 @@ class AccountingReportsPage extends Page
         } else {
             // General export
             $trxs = AccountingTransaction::with(['partner', 'client', 'project'])->get();
-            $sheet->setCellValue('A' . $row, 'رقم الحركة');
-            $sheet->setCellValue('B' . $row, 'التاريخ');
-            $sheet->setCellValue('C' . $row, 'نوع الحركة');
-            $sheet->setCellValue('D' . $row, 'المبلغ (USD)');
-            $sheet->setCellValue('E' . $row, 'الطرف المعني');
-            $sheet->setCellValue('F' . $row, 'مصدر الأموال');
-            $sheet->setCellValue('G' . $row, 'البيان');
+            $sheet->setCellValue('A' . $row, 'Transaction #');
+            $sheet->setCellValue('B' . $row, 'Date');
+            $sheet->setCellValue('C' . $row, 'Type');
+            $sheet->setCellValue('D' . $row, 'Amount (USD)');
+            $sheet->setCellValue('E' . $row, 'Party / Entity');
+            $sheet->setCellValue('F' . $row, 'Money Source');
+            $sheet->setCellValue('G' . $row, 'Description');
 
             foreach ($trxs as $trx) {
                 $row++;
@@ -138,7 +138,7 @@ class AccountingReportsPage extends Page
                 $sheet->setCellValue('B' . $row, $trx->transaction_date->format('Y-m-d'));
                 $sheet->setCellValue('C' . $row, $trx->transaction_type);
                 $sheet->setCellValue('D' . $row, (float)$trx->amount);
-                $sheet->setCellValue('E' . $row, $trx->partner?->name_ar ?: ($trx->client?->name ?: '-'));
+                $sheet->setCellValue('E' . $row, $trx->partner?->name_en ?: ($trx->client?->name ?: '-'));
                 $sheet->setCellValue('F' . $row, $trx->money_source);
                 $sheet->setCellValue('G' . $row, $trx->notes);
             }

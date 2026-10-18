@@ -19,13 +19,13 @@ class AccountingReviewResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
 
-    protected static ?string $navigationGroup = 'نظام المحاسبة والمالية';
+    protected static ?string $navigationGroup = 'Accounting & Finance';
 
-    protected static ?string $navigationLabel = 'المراجعة والمطابقة المالية';
+    protected static ?string $navigationLabel = 'Audit & Review Queue';
 
-    protected static ?string $modelLabel = 'حركة معلقة للمراجعة';
+    protected static ?string $modelLabel = 'Review Queue Item';
 
-    protected static ?string $pluralModelLabel = 'سجل المراجعة والمطابقة';
+    protected static ?string $pluralModelLabel = 'Audit & Review Queue';
 
     protected static ?int $navigationSort = 6;
 
@@ -51,20 +51,20 @@ class AccountingReviewResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('source_location')
-                    ->label('المصدر')
-                    ->state(fn (AccountingImportItem $record) => "{$record->sheet_name} (صف {$record->row_index})")
+                    ->label('Source Sheet')
+                    ->state(fn (AccountingImportItem $record) => "{$record->sheet_name} (Row {$record->row_index})")
                     ->fontFamily('mono')
                     ->badge()
                     ->color('gray'),
 
                 Tables\Columns\TextColumn::make('item_description')
-                    ->label('البيان في ملف الإكسل')
+                    ->label('Excel Record Description')
                     ->state(function (AccountingImportItem $record) {
                         return $record->raw_data['Vendor / Service']
                             ?? $record->raw_data['Project / Service']
                             ?? $record->raw_data['Project Name']
                             ?? $record->raw_data['Client Name']
-                            ?? 'سجل مالي';
+                            ?? 'Financial Item';
                     })
                     ->weight('bold')
                     ->searchable(query: function (Builder $query, string $search): Builder {
@@ -72,13 +72,13 @@ class AccountingReviewResource extends Resource
                     }),
 
                 Tables\Columns\TextColumn::make('amount')
-                    ->label('المبلغ')
+                    ->label('Amount')
                     ->money('USD')
                     ->weight('bold')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('raw_payer')
-                    ->label('الدافع الأصلي')
+                    ->label('Original Payer')
                     ->state(function (AccountingImportItem $record) {
                         return $record->raw_data['Paid By']
                             ?? $record->raw_data['founders ']
@@ -86,25 +86,25 @@ class AccountingReviewResource extends Resource
                     }),
 
                 Tables\Columns\TextColumn::make('review_reason')
-                    ->label('سبب التعليق للمراجعة')
+                    ->label('Review Justification')
                     ->limit(50)
                     ->color('danger')
                     ->tooltip(fn ($state) => $state),
 
                 Tables\Columns\TextColumn::make('proposed_type')
-                    ->label('التصنيف المقترح')
+                    ->label('Proposed Classification')
                     ->badge()
                     ->color('warning'),
 
                 Tables\Columns\TextColumn::make('review_status')
-                    ->label('حالة المراجعة')
+                    ->label('Audit Status')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pending_review' => 'معلق للمراجعة',
-                        'approved' => 'معتمد',
-                        'rejected' => 'مستبعد / ملغى',
-                        'ignored' => 'متجاهل',
-                        default => $state,
+                        'pending_review' => 'Pending Review',
+                        'approved' => 'Approved',
+                        'rejected' => 'Rejected / Excluded',
+                        'ignored' => 'Ignored',
+                        default => ucfirst($state),
                     })
                     ->color(fn (string $state): string => match ($state) {
                         'pending_review' => 'danger',
@@ -114,31 +114,31 @@ class AccountingReviewResource extends Resource
                     }),
 
                 Tables\Columns\TextColumn::make('final_decision')
-                    ->label('القرار المعتمد')
-                    ->placeholder('لم يُحسم بعد'),
+                    ->label('Final Decision')
+                    ->placeholder('Unresolved'),
 
                 Tables\Columns\TextColumn::make('reviewer.name')
-                    ->label('المدقق')
+                    ->label('Auditor')
                     ->placeholder('-'),
 
                 Tables\Columns\TextColumn::make('reviewed_at')
-                    ->label('تاريخ القرار')
+                    ->label('Decision Date')
                     ->dateTime('Y-m-d H:i')
                     ->placeholder('-'),
             ])
             ->defaultSort('review_status', 'desc')
             ->filters([
                 Tables\Filters\SelectFilter::make('review_status')
-                    ->label('حالة المراجعة')
+                    ->label('Audit Status')
                     ->options([
-                        'pending_review' => 'الحركات المعلقة فقط',
-                        'approved' => 'المعتمدة',
-                        'rejected' => 'المستبعدة',
+                        'pending_review' => 'Pending Review Only',
+                        'approved' => 'Approved',
+                        'rejected' => 'Rejected',
                     ])
                     ->default('pending_review'),
 
                 Tables\Filters\SelectFilter::make('sheet_name')
-                    ->label('اسم ورقة العمل')
+                    ->label('Sheet Name')
                     ->options([
                         'Income' => 'Income',
                         'Expenses' => 'Expenses',
@@ -149,22 +149,22 @@ class AccountingReviewResource extends Resource
             ->actions([
                 // 1. Quick Approve Action
                 Tables\Actions\Action::make('approve')
-                    ->label('اعتماد التصنيف')
+                    ->label('Approve Proposed')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->modalHeading('اعتماد التصنيف المقترح للحركة')
-                    ->modalDescription(fn (AccountingImportItem $record) => "هل تريد اعتماد تصنيف هذه الحركة كـ ({$record->proposed_type})؟")
+                    ->modalHeading('Confirm Proposed Accounting Classification')
+                    ->modalDescription(fn (AccountingImportItem $record) => "Approve this transaction as ({$record->proposed_type})?")
                     ->form([
                         Forms\Components\Textarea::make('decision_notes')
-                            ->label('ملاحظات الاعتماد والقرار النهائي')
-                            ->placeholder('اكتب أي ملاحظة توثيقية إضافية...'),
+                            ->label('Audit Decision Notes')
+                            ->placeholder('Add any relevant documentation notes...'),
                     ])
                     ->action(function (AccountingImportItem $record, array $data) {
                         $record->update([
                             'review_status' => 'approved',
                             'final_decision' => $record->proposed_type,
-                            'decision_notes' => $data['decision_notes'] ?? 'تم الاعتماد وفق التصنيف المقترح',
+                            'decision_notes' => $data['decision_notes'] ?? 'Approved as proposed by management',
                             'reviewed_by' => Auth::id(),
                             'reviewed_at' => now(),
                         ]);
@@ -174,12 +174,12 @@ class AccountingReviewResource extends Resource
                             'action' => 'approve_review_item',
                             'entity_type' => AccountingImportItem::class,
                             'entity_id' => $record->id,
-                            'description' => "اعتماد الحركة المعلقة من ورقة {$record->sheet_name} صف {$record->row_index} كتصنيف {$record->proposed_type}",
+                            'description' => "Approved review item from sheet {$record->sheet_name} row {$record->row_index} as {$record->proposed_type}",
                             'new_values' => $record->toArray(),
                         ]);
 
                         Notification::make()
-                            ->title('تم اعتماد الحركة بنجاح')
+                            ->title('Item approved successfully')
                             ->success()
                             ->send();
                     })
@@ -187,25 +187,25 @@ class AccountingReviewResource extends Resource
 
                 // 2. Reclassify Action
                 Tables\Actions\Action::make('reclassify')
-                    ->label('إعادة تصنيف')
+                    ->label('Reclassify')
                     ->icon('heroicon-o-pencil-square')
                     ->color('warning')
-                    ->modalHeading('تعديل تصنيف الحركة واعتمادها')
+                    ->modalHeading('Reclassify Transaction & Approve')
                     ->form([
                         Forms\Components\Select::make('new_type')
-                            ->label('التصنيف المحاسبي الجديد')
+                            ->label('New Accounting Classification')
                             ->options([
-                                'partner_personal_expense' => 'مصروف شخصي للشريك (يزيد دينه لدى الشركة)',
-                                'company_expense' => 'مصروف دفعته الشركة من أموالها',
-                                'partner_distribution' => 'سحب شريك / توزيع أرباح (منفصل عن الدين)',
-                                'partner_project_labor' => 'أجر فعلي للشريك مقابل تنفيذ مشروع',
-                                'partner_debt_repayment' => 'سداد جزء من دين الشريك',
-                                'client_collection' => 'تحصيل إيراد عميل',
-                                'capital_injection' => 'رأس مال تأسيسي (حقوق ملكية)',
+                                'partner_personal_expense' => 'Partner Personal Expense (Increases Debt to Partner)',
+                                'company_expense' => 'Company Expense (Paid from Treasury)',
+                                'partner_distribution' => 'Partner Drawing / Profit Draw (Segregated from Debt)',
+                                'partner_project_labor' => 'Partner Project Execution Labor',
+                                'partner_debt_repayment' => 'Partner Debt Repayment',
+                                'client_collection' => 'Client Collection',
+                                'capital_injection' => 'Founding Capital Injection (Equity)',
                             ])
                             ->required(),
                         Forms\Components\Textarea::make('decision_notes')
-                            ->label('سبب إعادة التصنيف والقرار النهائي')
+                            ->label('Reclassification Justification')
                             ->required(),
                     ])
                     ->action(function (AccountingImportItem $record, array $data) {
@@ -223,12 +223,12 @@ class AccountingReviewResource extends Resource
                             'action' => 'reclassify_review_item',
                             'entity_type' => AccountingImportItem::class,
                             'entity_id' => $record->id,
-                            'description' => "إعادة تصنيف الحركة المعلقة {$record->sheet_name}:R{$record->row_index} إلى {$data['new_type']}",
+                            'description' => "Reclassified review item {$record->sheet_name}:R{$record->row_index} to {$data['new_type']}",
                             'new_values' => $record->toArray(),
                         ]);
 
                         Notification::make()
-                            ->title('تم تعديل التصنيف واعتماد القرار بنجاح')
+                            ->title('Classification updated and approved')
                             ->success()
                             ->send();
                     })
@@ -236,14 +236,14 @@ class AccountingReviewResource extends Resource
 
                 // 3. Reject / Ignore Action
                 Tables\Actions\Action::make('reject')
-                    ->label('استبعاد')
+                    ->label('Exclude')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->modalHeading('استبعاد الحركة من القيود النشطة')
+                    ->modalHeading('Exclude Transaction from Active Ledger')
                     ->form([
                         Forms\Components\Textarea::make('decision_notes')
-                            ->label('سبب الاستبعاد')
+                            ->label('Exclusion Reason')
                             ->required(),
                     ])
                     ->action(function (AccountingImportItem $record, array $data) {
@@ -260,12 +260,12 @@ class AccountingReviewResource extends Resource
                             'action' => 'reject_review_item',
                             'entity_type' => AccountingImportItem::class,
                             'entity_id' => $record->id,
-                            'description' => "استبعاد الحركة المعلقة {$record->sheet_name}:R{$record->row_index}",
+                            'description' => "Excluded review item {$record->sheet_name}:R{$record->row_index}",
                             'new_values' => $record->toArray(),
                         ]);
 
                         Notification::make()
-                            ->title('تم استبعاد الحركة')
+                            ->title('Item excluded from active ledger')
                             ->warning()
                             ->send();
                     })

@@ -18,13 +18,13 @@ class AccountingProjectResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-briefcase';
 
-    protected static ?string $navigationGroup = 'نظام المحاسبة والمالية';
+    protected static ?string $navigationGroup = 'Accounting & Finance';
 
-    protected static ?string $navigationLabel = 'المشاريع والربحية';
+    protected static ?string $navigationLabel = 'Projects & Profitability';
 
-    protected static ?string $modelLabel = 'مشروع محاسبي';
+    protected static ?string $modelLabel = 'Project';
 
-    protected static ?string $pluralModelLabel = 'المشاريع والربحية';
+    protected static ?string $pluralModelLabel = 'Projects';
 
     protected static ?int $navigationSort = 5;
 
@@ -39,32 +39,32 @@ class AccountingProjectResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
-                    ->label('اسم المشروع')
+                    ->label('Project Title')
                     ->required(),
                 Forms\Components\Select::make('client_id')
-                    ->label('العميل')
+                    ->label('Client')
                     ->options(AccountingClient::pluck('name', 'id'))
                     ->searchable(),
                 Forms\Components\TextInput::make('total_price')
-                    ->label('قيمة العقد الإجمالية (USD)')
+                    ->label('Contract Value (USD)')
                     ->numeric()
                     ->prefix('$')
-                    ->helperText('قيمة العقد التعاقدية؛ لا تُعتبر إيراداً مقبوضاً تلقائياً حتى يتم التحصيل الفعلي.'),
+                    ->helperText('Total agreed contract price; recorded as realized revenue only upon actual collection.'),
                 Forms\Components\TextInput::make('direct_costs')
-                    ->label('التكاليف المباشرة (USD)')
+                    ->label('Direct Project Costs & Labor (USD)')
                     ->numeric()
                     ->prefix('$'),
                 Forms\Components\Select::make('status')
-                    ->label('حالة المشروع')
+                    ->label('Project Status')
                     ->options([
-                        'in_progress' => 'قيد التنفيذ (In Progress)',
-                        'done' => 'مكتمل (Done)',
-                        'cancelled' => 'ملغى (Cancelled - لا يُعتبر مستحقاً تلقائياً)',
+                        'in_progress' => 'In Progress',
+                        'done' => 'Completed',
+                        'cancelled' => 'Cancelled',
                     ])
                     ->default('in_progress')
                     ->required(),
                 Forms\Components\Textarea::make('notes')
-                    ->label('ملاحظات المشروع')
+                    ->label('Project Notes')
                     ->columnSpanFull(),
             ]);
     }
@@ -74,49 +74,49 @@ class AccountingProjectResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('المشروع')
+                    ->label('Project Name')
                     ->weight('bold')
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('client.name')
-                    ->label('العميل')
+                    ->label('Client')
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('total_price')
-                    ->label('قيمة العقد')
+                    ->label('Contract Value')
                     ->money('USD')
                     ->weight('bold'),
 
                 Tables\Columns\TextColumn::make('total_collected')
-                    ->label('المقبوض فعلياً')
+                    ->label('Collected')
                     ->money('USD')
                     ->color('success')
                     ->weight('bold'),
 
                 Tables\Columns\TextColumn::make('remaining_balance')
-                    ->label('المتبقي على العقد')
+                    ->label('Contract Balance')
                     ->money('USD')
                     ->badge()
                     ->color(fn ($state) => (float)$state > 0 ? 'warning' : 'gray'),
 
                 Tables\Columns\TextColumn::make('direct_costs')
-                    ->label('التكاليف المباشرة')
+                    ->label('Direct Costs')
                     ->money('USD')
                     ->color('danger'),
 
                 Tables\Columns\TextColumn::make('net_profit')
-                    ->label('هامش الربح المتوقع')
+                    ->label('Project Gross Margin')
                     ->money('USD')
                     ->color('info')
                     ->weight('bold'),
 
                 Tables\Columns\TextColumn::make('status')
-                    ->label('الحالة')
+                    ->label('Status')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'done' => 'مكتمل',
-                        'cancelled' => 'ملغى',
-                        default => 'قيد التنفيذ',
+                        'done' => 'Completed',
+                        'cancelled' => 'Cancelled',
+                        default => 'In Progress',
                     })
                     ->color(fn (string $state): string => match ($state) {
                         'done' => 'success',
@@ -126,11 +126,11 @@ class AccountingProjectResource extends Resource
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
-                    ->label('الحالة')
+                    ->label('Status')
                     ->options([
-                        'done' => 'مكتمل',
-                        'in_progress' => 'قيد التنفيذ',
-                        'cancelled' => 'ملغى',
+                        'done' => 'Completed',
+                        'in_progress' => 'In Progress',
+                        'cancelled' => 'Cancelled',
                     ]),
             ])
             ->actions([

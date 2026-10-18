@@ -19,11 +19,11 @@ class AccountingDashboard extends Page
 
     protected static string $view = 'filament.pages.accounting-dashboard';
 
-    protected static ?string $navigationGroup = 'نظام المحاسبة والمالية';
+    protected static ?string $navigationGroup = 'Accounting & Finance';
 
-    protected static ?string $navigationLabel = 'لوحة المحاسبة العامة';
+    protected static ?string $navigationLabel = 'Financial Dashboard';
 
-    protected static ?string $title = 'لوحة التحكم والتحليل المالي - Three Digit Software';
+    protected static ?string $title = 'Financial & Accounting Dashboard - Three Digit Software';
 
     protected static ?int $navigationSort = 1;
 
@@ -102,7 +102,7 @@ class AccountingDashboard extends Page
             'bankBalance' => $bankBalance,
             'reportedCash' => $reportedCash,
             'cashAuditStatus' => $cashAuditStatus,
-            'reconciliationDate' => '13 أكتوبر 2026',
+            'reconciliationDate' => 'October 13, 2026',
             'abdullahDebt' => $abdullahDebt,
             'amerDebt' => $amerDebt,
             'totalPartnerDebt' => $totalPartnerDebt,
