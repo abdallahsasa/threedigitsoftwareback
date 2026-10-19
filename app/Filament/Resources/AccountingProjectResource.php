@@ -5,10 +5,19 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\AccountingProjectResource\Pages;
 use App\Models\AccountingClient;
 use App\Models\AccountingProject;
-use Filament\Forms;
+use App\Models\AccountingService;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
 
@@ -26,46 +35,115 @@ class AccountingProjectResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Projects';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 3;
 
     public static function canViewAny(): bool
     {
         $user = Auth::user();
-        return $user && ($user->isAdmin() || $user->canViewAccounting());
+        return $user && ($user->isAdmin() || $user->canViewAccounting() || $user->canManageClientsAndProjects());
     }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->label('Project Title')
-                    ->required(),
-                Forms\Components\Select::make('client_id')
-                    ->label('Client')
-                    ->options(AccountingClient::pluck('name', 'id'))
-                    ->searchable(),
-                Forms\Components\TextInput::make('total_price')
-                    ->label('Contract Value (USD)')
-                    ->numeric()
-                    ->prefix('$')
-                    ->helperText('Total agreed contract price; recorded as realized revenue only upon actual collection.'),
-                Forms\Components\TextInput::make('direct_costs')
-                    ->label('Direct Project Costs & Labor (USD)')
-                    ->numeric()
-                    ->prefix('$'),
-                Forms\Components\Select::make('status')
-                    ->label('Project Status')
-                    ->options([
-                        'in_progress' => 'In Progress',
-                        'done' => 'Completed',
-                        'cancelled' => 'Cancelled',
-                    ])
-                    ->default('in_progress')
-                    ->required(),
-                Forms\Components\Textarea::make('notes')
-                    ->label('Project Notes')
-                    ->columnSpanFull(),
+                Section::make('Project Overview / نظرة عامة على المشروع')
+                    ->schema([
+                        Grid::make(3)->schema([
+                            TextInput::make('name')
+                                ->label('Project Title / اسم المشروع')
+                                ->required(),
+
+                            Select::make('client_id')
+                                ->label('Client / العميل')
+                                ->relationship('client', 'name')
+                                ->getOptionLabelFromRecordUsing(fn($record) => $record->display_name)
+                                ->searchable()
+                                ->preload()
+                                ->required(),
+
+                            TextInput::make('business_sector')
+                                ->label('Business Sector / قطاع الأعمال')
+                                ->placeholder('مثال: تجارة سيارات، عيادات، تعليم'),
+
+                            Select::make('service_categories')
+                                ->label('Service Categories / تصنيفات الخدمات المشولة')
+                                ->multiple()
+                                ->options(AccountingService::CATEGORIES),
+
+                            Select::make('status')
+                                ->label('Project Status / حالة المشروع')
+                                ->options([
+                                    'in_progress' => 'In Progress / قيد التنفيذ',
+                                    'done' => 'Completed / منجز',
+                                    'cancelled' => 'Cancelled / ملغى',
+                                ])
+                                ->default('in_progress')
+                                ->required(),
+
+                            TextInput::make('currency')
+                                ->label('Currency / العملة')
+                                ->default('USD')
+                                ->required(),
+
+                            DatePicker::make('start_date')
+                                ->label('Start Date / تاريخ البدء'),
+
+                            DatePicker::make('delivery_date')
+                                ->label('Target Delivery Date / موعد التسليم المتوقع'),
+
+                            TextInput::make('time_spent_hours')
+                                ->label('Time Spent (Hours) / ساعات العمل المنفذة')
+                                ->numeric(),
+                        ]),
+                    ]),
+
+                Section::make('Contract & Financial Controls / الضوابط المالية للمشروع')
+                    ->description('تنبيه محاسبي: قيمة العقد لا تُعد نقداً مقبوضاً، والمشاريع الملغاة لا تُعد ذمماً مدينة تلقائياً.')
+                    ->schema([
+                        Grid::make(2)->schema([
+                            TextInput::make('total_price')
+                                ->label('Agreed Contract Value / قيمة العقد الإجمالية المتفق عليها')
+                                ->numeric()
+                                ->prefix('$')
+                                ->required()
+                                ->helperText('القيمة التعاقدية الكاملة؛ لا تحتسب كإيراد فعلي إلا عند إصدار الفاتورة أو التحصيل.'),
+
+                            TextInput::make('direct_costs')
+                                ->label('Direct Project Costs & Freelancers / التكاليف المباشرة وأجور التنفيذ')
+                                ->numeric()
+                                ->prefix('$')
+                                ->default(0.0000)
+                                ->helperText('تكاليف السيرفرات والتنفيذ الخارجي المباشر المرتبطة بالمشروع.'),
+                        ]),
+                    ]),
+
+                Section::make('Scope, Deliverables & Attachments / النطاق والتسليمات')
+                    ->schema([
+                        Grid::make(2)->schema([
+                            Textarea::make('description')
+                                ->label('Description / وصف المشروع')
+                                ->rows(2),
+
+                            Textarea::make('scope')
+                                ->label('Scope of Work / نطاق العمل التفصيلي')
+                                ->rows(2),
+
+                            Textarea::make('deliverables')
+                                ->label('Deliverables / مخرجات المشروع المسلمة')
+                                ->rows(2),
+
+                            Textarea::make('notes')
+                                ->label('Internal Project Notes / ملاحظات إدارية')
+                                ->rows(2),
+
+                            FileUpload::make('attachments')
+                                ->label('Project Documents & Attachments / وثائق وملفات المشروع')
+                                ->multiple()
+                                ->directory('attachments/projects')
+                                ->columnSpanFull(),
+                        ]),
+                    ]),
             ]);
     }
 
@@ -73,68 +151,68 @@ class AccountingProjectResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
-                    ->label('Project Name')
+                TextColumn::make('name')
+                    ->label('المشروع')
                     ->weight('bold')
+                    ->searchable()
+                    ->description(fn(AccountingProject $record) => $record->business_sector),
+
+                TextColumn::make('client.name')
+                    ->label('العميل')
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('client.name')
-                    ->label('Client')
-                    ->searchable(),
-
-                Tables\Columns\TextColumn::make('total_price')
-                    ->label('Contract Value')
+                TextColumn::make('total_price')
+                    ->label('قيمة العقد')
                     ->money('USD')
                     ->weight('bold'),
 
-                Tables\Columns\TextColumn::make('total_collected')
-                    ->label('Collected')
+                TextColumn::make('total_invoiced')
+                    ->label('المفوتر')
+                    ->money('USD')
+                    ->color('info'),
+
+                TextColumn::make('total_collected')
+                    ->label('المحصّل نقداً')
                     ->money('USD')
                     ->color('success')
                     ->weight('bold'),
 
-                Tables\Columns\TextColumn::make('remaining_balance')
-                    ->label('Contract Balance')
-                    ->money('USD')
-                    ->badge()
-                    ->color(fn ($state) => (float)$state > 0 ? 'warning' : 'gray'),
-
-                Tables\Columns\TextColumn::make('direct_costs')
-                    ->label('Direct Costs')
+                TextColumn::make('direct_costs')
+                    ->label('التكاليف المباشرة')
                     ->money('USD')
                     ->color('danger'),
 
-                Tables\Columns\TextColumn::make('net_profit')
-                    ->label('Project Gross Margin')
+                TextColumn::make('project_margin')
+                    ->label('هامش الربح')
                     ->money('USD')
-                    ->color('info')
+                    ->color(fn(AccountingProject $record) => $record->project_margin >= 0 ? 'success' : 'danger')
                     ->weight('bold'),
 
-                Tables\Columns\TextColumn::make('status')
-                    ->label('Status')
+                TextColumn::make('status')
+                    ->label('الحالة')
                     ->badge()
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'done' => 'Completed',
-                        'cancelled' => 'Cancelled',
-                        default => 'In Progress',
+                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                        'done' => 'منجز',
+                        'cancelled' => 'ملغى',
+                        default => 'قيد التنفيذ',
                     })
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn(string $state): string => match ($state) {
                         'done' => 'success',
                         'cancelled' => 'danger',
                         default => 'warning',
                     }),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('status')
-                    ->label('Status')
+                SelectFilter::make('status')
+                    ->label('الحالة')
                     ->options([
-                        'done' => 'Completed',
-                        'in_progress' => 'In Progress',
-                        'cancelled' => 'Cancelled',
+                        'in_progress' => 'قيد التنفيذ',
+                        'done' => 'منجز',
+                        'cancelled' => 'ملغى',
                     ]),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                EditAction::make(),
             ]);
     }
 
@@ -142,6 +220,8 @@ class AccountingProjectResource extends Resource
     {
         return [
             'index' => Pages\ListAccountingProjects::route('/'),
+            'create' => Pages\CreateAccountingProject::route('/create'),
+            'edit' => Pages\EditAccountingProject::route('/{record}/edit'),
         ];
     }
 }

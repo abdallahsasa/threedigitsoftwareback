@@ -5,11 +5,12 @@ namespace App\Filament\Pages;
 use App\Models\AccountingAccount;
 use App\Models\AccountingClient;
 use App\Models\AccountingImportItem;
+use App\Models\AccountingInvoice;
 use App\Models\AccountingPartner;
+use App\Models\AccountingPayment;
 use App\Models\AccountingProject;
 use App\Models\AccountingReconciliation;
 use App\Models\AccountingTransaction;
-use App\Models\JournalEntryLine;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Auth;
 
@@ -35,27 +36,21 @@ class AccountingDashboard extends Page
 
     public function getViewData(): array
     {
-        // 1. Company Fund Balances
-        $cashAccount = AccountingAccount::where('code', '1010')->first();
-        $bankAccount = AccountingAccount::where('code', '1020')->first();
-        $cashBalance = $cashAccount ? $cashAccount->balance : 0.0;
-        $bankBalance = $bankAccount ? $bankAccount->balance : 0.0;
+        // 1. Contract Values (Agreed contract values across all active projects)
+        $totalContractValue = (float) AccountingProject::where('status', '!=', 'cancelled')->sum('total_price');
 
-        // 2. Transition Point & Reported Cash
-        $reconciliation = AccountingReconciliation::whereDate('reconciliation_date', '2026-10-13')->first();
-        $reportedCash = $reconciliation ? (float)$reconciliation->reported_cash_balance : 250.0;
-        $cashAuditStatus = $reconciliation ? $reconciliation->cash_audit_status : 'estimated_needs_physical_audit';
+        // 2. Issued Invoice Amounts
+        $totalIssuedInvoices = (float) AccountingInvoice::where('document_status', 'issued')->sum('total_amount');
 
-        // 3. Partner Debts (Confirmed)
-        $abdullah = AccountingPartner::where('slug', 'abdullah')->first();
-        $amer = AccountingPartner::where('slug', 'amer')->first();
-        $abdullahDebt = $abdullah ? $abdullah->calculated_debt_balance : 1277.0;
-        $amerDebt = $amer ? $amer->calculated_debt_balance : 1277.0;
-        $totalPartnerDebt = $abdullahDebt + $amerDebt;
-
-        // 4. Client Collections
+        // 3. Earned Revenue (Ledger Revenue 4010)
         $revenueAccount = AccountingAccount::where('code', '4010')->first();
-        $totalRevenue = $revenueAccount ? $revenueAccount->balance : 0.0;
+        $totalEarnedRevenue = $revenueAccount ? $revenueAccount->balance : 0.0;
+
+        // 4. Customer Collections (Actual realized cash collections)
+        $totalCustomerCollections = (float) AccountingPayment::sum('amount')
+            + (float) AccountingTransaction::where('transaction_type', 'client_collection')
+                ->where('status', 'completed')
+                ->sum('amount');
 
         // 5. Operating Expenses
         $rentExpense = AccountingAccount::where('code', '6010')->first()?->balance ?? 0.0;
@@ -69,56 +64,82 @@ class AccountingDashboard extends Page
         $directCostAccount = AccountingAccount::where('code', '5010')->first();
         $totalDirectCosts = $directCostAccount ? $directCostAccount->balance : 0.0;
 
-        // 7. Partner Drawings / Distributions
+        // 7. Company Account Balances
+        $cashAccount = AccountingAccount::where('code', '1010')->first();
+        $bankAccount = AccountingAccount::where('code', '1020')->first();
+        $cashBalance = $cashAccount ? $cashAccount->balance : 0.0;
+        $bankBalance = $bankAccount ? $bankAccount->balance : 0.0;
+        $totalCompanyFunds = $cashBalance + $bankBalance;
+
+        // 8. Reported Physical Cash & Count Date (Approximate dated observation)
+        $reconciliation = AccountingReconciliation::whereDate('reconciliation_date', '2026-10-13')->first();
+        $reportedCash = $reconciliation ? (float)$reconciliation->reported_cash_balance : 250.0;
+        $cashAuditStatus = $reconciliation ? $reconciliation->cash_audit_status : 'estimated_needs_physical_audit';
+        $reconciliationDate = '13 October 2026';
+
+        // 9. Partner Loan Balances (Confirmed net company debt to partners)
+        $abdullah = AccountingPartner::where('slug', 'abdullah')->first();
+        $amer = AccountingPartner::where('slug', 'amer')->first();
+        $abdullahDebt = $abdullah ? $abdullah->calculated_debt_balance : 1277.0;
+        $amerDebt = $amer ? $amer->calculated_debt_balance : 1277.0;
+        $totalPartnerDebt = $abdullahDebt + $amerDebt;
+
+        // 10. Partner Withdrawals and Distributions
         $abdullahDrawings = $abdullah ? $abdullah->total_drawings : 0.0;
         $amerDrawings = $amer ? $amer->total_drawings : 0.0;
         $totalDrawings = $abdullahDrawings + $amerDrawings;
 
-        // 8. Potential Client Receivables (notes from Excel & clients)
+        // 11. Confirmed Customer Receivables (From Ledger Account 1100 + Unpaid Issued Invoices)
+        $receivableAccount = AccountingAccount::where('code', '1100')->first();
+        $confirmedReceivables = $receivableAccount ? $receivableAccount->balance : 0.0;
         $potentialReceivables = (float) AccountingClient::sum('potential_receivable_amount');
 
-        // 9. Items Needing Review
-        $pendingReviewCount = AccountingImportItem::where('review_status', 'pending_review')->count();
-        $flaggedTrxCount = AccountingTransaction::where('review_status', 'pending_review')->count();
+        // 12. Unresolved Records (Pending review staging items & flagged transactions)
+        $pendingImportCount = AccountingImportItem::where('review_status', 'pending_review')->count();
+        $pendingTrxCount = AccountingTransaction::where('review_status', 'pending_review')->count();
+        $totalUnresolvedCount = $pendingImportCount + $pendingTrxCount;
 
-        // 10. Operating Profit
-        // Operating Profit = Revenue - (Direct Costs + Operating Expenses)
-        $operatingProfit = $totalRevenue - ($totalDirectCosts + $totalOperatingExpenses);
+        // 13. Operating Profit & Data Completeness
+        // Operating Profit = Earned Revenue - (Direct Costs + Operating Expenses)
+        $operatingProfit = $totalEarnedRevenue - ($totalDirectCosts + $totalOperatingExpenses);
 
-        // 11. Recent Transactions
+        // Recent Activity
+        $recentInvoices = AccountingInvoice::with('client')
+            ->latest('id')
+            ->take(5)
+            ->get();
+
         $recentTransactions = AccountingTransaction::with(['partner', 'client', 'project'])
             ->latest('transaction_date')
             ->latest('id')
-            ->take(10)
-            ->get();
-
-        // 12. Pending Review Highlights
-        $pendingReviews = AccountingImportItem::where('review_status', 'pending_review')
-            ->take(6)
+            ->take(8)
             ->get();
 
         return [
+            'totalContractValue' => $totalContractValue,
+            'totalIssuedInvoices' => $totalIssuedInvoices,
+            'totalEarnedRevenue' => $totalEarnedRevenue,
+            'totalCustomerCollections' => $totalCustomerCollections,
+            'totalOperatingExpenses' => $totalOperatingExpenses,
+            'totalDirectCosts' => $totalDirectCosts,
             'cashBalance' => $cashBalance,
             'bankBalance' => $bankBalance,
+            'totalCompanyFunds' => $totalCompanyFunds,
             'reportedCash' => $reportedCash,
             'cashAuditStatus' => $cashAuditStatus,
-            'reconciliationDate' => 'October 13, 2026',
+            'reconciliationDate' => $reconciliationDate,
             'abdullahDebt' => $abdullahDebt,
             'amerDebt' => $amerDebt,
             'totalPartnerDebt' => $totalPartnerDebt,
-            'totalRevenue' => $totalRevenue,
-            'totalOperatingExpenses' => $totalOperatingExpenses,
-            'totalDirectCosts' => $totalDirectCosts,
             'totalDrawings' => $totalDrawings,
             'abdullahDrawings' => $abdullahDrawings,
             'amerDrawings' => $amerDrawings,
+            'confirmedReceivables' => $confirmedReceivables,
             'potentialReceivables' => $potentialReceivables,
-            'pendingReviewCount' => $pendingReviewCount + $flaggedTrxCount,
+            'totalUnresolvedCount' => $totalUnresolvedCount,
             'operatingProfit' => $operatingProfit,
+            'recentInvoices' => $recentInvoices,
             'recentTransactions' => $recentTransactions,
-            'pendingReviews' => $pendingReviews,
-            'foundingCapitalSpent' => 700.0,
-            'historicalReserve' => 2304.0,
         ];
     }
 }

@@ -17,11 +17,25 @@ class AccountingProject extends Model
         'total_price' => 'decimal:4',
         'direct_costs' => 'decimal:4',
         'time_spent_hours' => 'decimal:2',
+        'service_categories' => 'array',
+        'attachments' => 'array',
+        'start_date' => 'date',
+        'delivery_date' => 'date',
     ];
 
     public function client(): BelongsTo
     {
         return $this->belongsTo(AccountingClient::class, 'client_id');
+    }
+
+    public function quotations(): HasMany
+    {
+        return $this->hasMany(AccountingQuotation::class, 'project_id');
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(AccountingInvoice::class, 'project_id');
     }
 
     public function transactions(): HasMany
@@ -35,7 +49,7 @@ class AccountingProject extends Model
     }
 
     /**
-     * Total collected from client for this project
+     * Total collected from client for this project (cash collections only)
      */
     public function getTotalCollectedAttribute(): float
     {
@@ -46,18 +60,24 @@ class AccountingProject extends Model
     }
 
     /**
-     * Calculated net profit = total_price - direct_costs
+     * Total amount of issued invoices for this project
      */
-    public function getNetProfitAttribute(): float
+    public function getTotalInvoicedAttribute(): float
     {
-        return round((float)$this->total_price - (float)$this->direct_costs, 4);
+        return (float) $this->invoices()
+            ->where('document_status', 'issued')
+            ->sum('total_amount');
     }
 
     /**
-     * Remaining uncollected balance on contract
+     * Calculated net project margin = total_price - direct_costs
+     * (Contract value is not cash or guaranteed revenue, status 'cancelled' does not produce receivables)
      */
-    public function getRemainingBalanceAttribute(): float
+    public function getProjectMarginAttribute(): float
     {
-        return round(max(0, (float)$this->total_price - $this->total_collected), 4);
+        if ($this->status === 'cancelled') {
+            return 0.0;
+        }
+        return round((float)$this->total_price - (float)$this->direct_costs, 4);
     }
 }

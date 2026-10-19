@@ -4,8 +4,11 @@ namespace App\Filament\Pages;
 
 use App\Models\AccountingAccount;
 use App\Models\AccountingClient;
+use App\Models\AccountingImportItem;
+use App\Models\AccountingInvoice;
 use App\Models\AccountingPartner;
 use App\Models\AccountingProject;
+use App\Models\AccountingReconciliation;
 use App\Models\AccountingTransaction;
 use App\Models\JournalEntryLine;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -29,7 +32,7 @@ class AccountingReportsPage extends Page
 
     protected static ?int $navigationSort = 8;
 
-    public string $activeTab = 'cash_statement'; // cash_statement, partner_statement, client_collections, monthly_expenses, project_costs
+    public string $activeTab = 'cash_statement'; // cash_statement, partner_statement, client_collections, receivables_aging, monthly_expenses, project_costs, reconciliation_unresolved
     public ?int $selectedPartnerId = null;
     public ?string $fromDate = null;
     public ?string $toDate = null;
@@ -64,8 +67,10 @@ class AccountingReportsPage extends Page
             'cash_statement' => 'Cash Flow Statement',
             'partner_statement' => 'Partner Account Ledger',
             'client_collections' => 'Client Collections & Receivables',
+            'receivables_aging' => 'Receivables Aging Report',
             'monthly_expenses' => 'Operating Expenses Statement',
             'project_costs' => 'Project Profitability & Cost Analysis',
+            'reconciliation_unresolved' => 'Reconciliation & Unresolved Audit',
             default => 'Financial Statement',
         };
 
@@ -121,8 +126,25 @@ class AccountingReportsPage extends Page
                     $sheet->setCellValue('E' . $row, $line->description);
                 }
             }
+        } elseif ($this->activeTab === 'receivables_aging') {
+            $sheet->setCellValue('A' . $row, 'Client');
+            $sheet->setCellValue('B' . $row, 'Current (<30d)');
+            $sheet->setCellValue('C' . $row, '30 - 60 Days');
+            $sheet->setCellValue('D' . $row, '61 - 90 Days');
+            $sheet->setCellValue('E' . $row, 'Over 90 Days');
+            $sheet->setCellValue('F' . $row, 'Total Outstanding');
+
+            $agingData = $this->getReceivablesAging();
+            foreach ($agingData['clients'] as $c) {
+                $row++;
+                $sheet->setCellValue('A' . $row, $c['name']);
+                $sheet->setCellValue('B' . $row, $c['current']);
+                $sheet->setCellValue('C' . $row, $c['days_30']);
+                $sheet->setCellValue('D' . $row, $c['days_60']);
+                $sheet->setCellValue('E' . $row, $c['days_90']);
+                $sheet->setCellValue('F' . $row, $c['total']);
+            }
         } else {
-            // General export
             $trxs = AccountingTransaction::with(['partner', 'client', 'project'])->get();
             $sheet->setCellValue('A' . $row, 'Transaction #');
             $sheet->setCellValue('B' . $row, 'Date');
@@ -152,6 +174,63 @@ class AccountingReportsPage extends Page
         }, $filename, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ]);
+    }
+
+    /**
+     * Compute Receivables Aging Breakdown
+     */
+    public function getReceivablesAging(): array
+    {
+        $invoices = AccountingInvoice::where('document_status', 'issued')
+            ->where('balance_due', '>', 0)
+            ->with('client')
+            ->get();
+
+        $clients = [];
+        $totals = ['current' => 0.0, 'days_30' => 0.0, 'days_60' => 0.0, 'days_90' => 0.0, 'total' => 0.0];
+
+        foreach ($invoices as $inv) {
+            $clientId = $inv->client_id;
+            $clientName = $inv->client->display_name;
+
+            if (!isset($clients[$clientId])) {
+                $clients[$clientId] = [
+                    'name' => $clientName,
+                    'current' => 0.0,
+                    'days_30' => 0.0,
+                    'days_60' => 0.0,
+                    'days_90' => 0.0,
+                    'total' => 0.0,
+                ];
+            }
+
+            $due = $inv->due_date;
+            $balance = (float)$inv->balance_due;
+            $clients[$clientId]['total'] += $balance;
+            $totals['total'] += $balance;
+
+            if (!$due || $due->isFuture()) {
+                $clients[$clientId]['current'] += $balance;
+                $totals['current'] += $balance;
+            } else {
+                $days = $due->diffInDays(now());
+                if ($days <= 30) {
+                    $clients[$clientId]['days_30'] += $balance;
+                    $totals['days_30'] += $balance;
+                } elseif ($days <= 60) {
+                    $clients[$clientId]['days_60'] += $balance;
+                    $totals['days_60'] += $balance;
+                } else {
+                    $clients[$clientId]['days_90'] += $balance;
+                    $totals['days_90'] += $balance;
+                }
+            }
+        }
+
+        return [
+            'clients' => array_values($clients),
+            'totals' => $totals,
+        ];
     }
 
     /**
@@ -215,16 +294,23 @@ class AccountingReportsPage extends Page
         // 3. Client Collections
         $clients = AccountingClient::with(['projects'])->get();
 
-        // 4. Projects profitability
+        // 4. Receivables Aging
+        $agingData = $this->getReceivablesAging();
+
+        // 5. Projects profitability
         $projects = AccountingProject::with(['client'])->get();
 
-        // 5. Monthly Expenses breakdown
+        // 6. Monthly Expenses breakdown
         $monthlyExpenses = AccountingTransaction::whereIn('transaction_type', ['company_expense', 'partner_personal_expense'])
             ->where('status', 'completed')
             ->selectRaw('DATE_FORMAT(transaction_date, "%Y-%m") as month, expense_category, sum(amount) as total')
             ->groupBy('month', 'expense_category')
             ->orderBy('month', 'desc')
             ->get();
+
+        // 7. Unresolved & Reconciliation Audit
+        $reconciliation = AccountingReconciliation::whereDate('reconciliation_date', '2026-10-13')->first();
+        $unresolvedItems = AccountingImportItem::where('review_status', 'pending_review')->get();
 
         return [
             'activeTab' => $this->activeTab,
@@ -237,8 +323,11 @@ class AccountingReportsPage extends Page
             'partnerDebtLines' => $partnerDebtLines,
             'partnerDrawingsLines' => $partnerDrawingsLines,
             'clients' => $clients,
+            'agingData' => $agingData,
             'projects' => $projects,
             'monthlyExpenses' => $monthlyExpenses,
+            'reconciliation' => $reconciliation,
+            'unresolvedItems' => $unresolvedItems,
         ];
     }
 }

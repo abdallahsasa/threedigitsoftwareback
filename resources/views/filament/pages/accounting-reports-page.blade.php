@@ -42,6 +42,10 @@
                 <x-heroicon-m-building-office class="w-4 h-4" />
                 Client Collections & Receivables
             </button>
+            <button wire:click="setTab('receivables_aging')" class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 {{ $activeTab === 'receivables_aging' ? 'bg-white dark:bg-gray-900 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' }}">
+                <x-heroicon-m-clock class="w-4 h-4" />
+                Receivables Aging
+            </button>
             <button wire:click="setTab('monthly_expenses')" class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 {{ $activeTab === 'monthly_expenses' ? 'bg-white dark:bg-gray-900 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' }}">
                 <x-heroicon-m-receipt-percent class="w-4 h-4" />
                 Operating Overhead
@@ -49,6 +53,10 @@
             <button wire:click="setTab('project_costs')" class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 {{ $activeTab === 'project_costs' ? 'bg-white dark:bg-gray-900 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' }}">
                 <x-heroicon-m-briefcase class="w-4 h-4" />
                 Project Margins & Costing
+            </button>
+            <button wire:click="setTab('reconciliation_unresolved')" class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 {{ $activeTab === 'reconciliation_unresolved' ? 'bg-white dark:bg-gray-900 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' }}">
+                <x-heroicon-m-scale class="w-4 h-4" />
+                Cutover & Unresolved Audit
             </button>
         </div>
 
@@ -365,6 +373,149 @@
                             @empty
                             <tr>
                                 <td colspan="7" class="p-8 text-center text-gray-500">No projects recorded yet.</td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        <!-- TAB 6: Receivables Aging -->
+        @if($activeTab === 'receivables_aging')
+        <div class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                <div class="p-4 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+                    <span class="text-xs text-gray-500 font-semibold uppercase">Current (< 30 Days)</span>
+                    <div class="text-xl font-bold text-gray-900 dark:text-white mt-1">
+                        ${{ number_format($agingData['totals']['current'], 2) }}
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+                    <span class="text-xs text-amber-500 font-semibold uppercase">30 - 60 Days Overdue</span>
+                    <div class="text-xl font-bold text-amber-600 mt-1">
+                        ${{ number_format($agingData['totals']['days_30'], 2) }}
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+                    <span class="text-xs text-orange-500 font-semibold uppercase">61 - 90 Days Overdue</span>
+                    <div class="text-xl font-bold text-orange-600 mt-1">
+                        ${{ number_format($agingData['totals']['days_60'], 2) }}
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+                    <span class="text-xs text-rose-500 font-semibold uppercase">90+ Days Overdue</span>
+                    <div class="text-xl font-bold text-rose-600 mt-1">
+                        ${{ number_format($agingData['totals']['days_90'], 2) }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm">
+                <h3 class="text-base font-bold text-gray-900 dark:text-white mb-4">Client Receivables Aging Schedule</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm border-collapse">
+                        <thead>
+                            <tr class="border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 font-semibold uppercase">
+                                <th class="p-3">Client</th>
+                                <th class="p-3">Current</th>
+                                <th class="p-3">30-60 Days</th>
+                                <th class="p-3">61-90 Days</th>
+                                <th class="p-3">90+ Days</th>
+                                <th class="p-3 font-bold text-gray-900 dark:text-white">Total Outstanding</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                            @forelse($agingData['clients'] as $c)
+                            <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/40">
+                                <td class="p-3 font-bold text-gray-900 dark:text-white">{{ $c['name'] }}</td>
+                                <td class="p-3">${{ number_format($c['current'], 2) }}</td>
+                                <td class="p-3 text-amber-600">${{ number_format($c['days_30'], 2) }}</td>
+                                <td class="p-3 text-orange-600">${{ number_format($c['days_60'], 2) }}</td>
+                                <td class="p-3 text-rose-600 font-bold">${{ number_format($c['days_90'], 2) }}</td>
+                                <td class="p-3 font-black text-gray-900 dark:text-white">${{ number_format($c['total'], 2) }}</td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="6" class="p-6 text-center text-gray-400">No outstanding client receivables currently recorded.</td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        <!-- TAB 7: Cutover & Unresolved Audit -->
+        @if($activeTab === 'reconciliation_unresolved')
+        <div class="space-y-4">
+            <div class="p-6 rounded-2xl bg-amber-500/10 border border-amber-500/30">
+                <div class="flex items-center gap-2">
+                    <x-heroicon-m-scale class="w-5 h-5 text-amber-600" />
+                    <h3 class="text-base font-bold text-amber-900 dark:text-amber-200">
+                        Cutover Transition Facts — 13 October 2026
+                    </h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 text-xs">
+                    <div class="p-3 rounded-xl bg-white/60 dark:bg-gray-900/60 border border-amber-200 dark:border-amber-800">
+                        <span class="text-gray-500 block">Confirmed Debt to Abdullah:</span>
+                        <strong class="text-base text-gray-900 dark:text-white">$1,277.00</strong>
+                        <div class="text-[11px] text-gray-500 mt-1">Includes ~$200-210 personal transfer from Abdullah to Amer.</div>
+                    </div>
+                    <div class="p-3 rounded-xl bg-white/60 dark:bg-gray-900/60 border border-amber-200 dark:border-amber-800">
+                        <span class="text-gray-500 block">Confirmed Debt to Amer:</span>
+                        <strong class="text-base text-gray-900 dark:text-white">$1,277.00</strong>
+                        <div class="text-[11px] text-gray-500 mt-1">Net balance after prior $1,000 cash repayment.</div>
+                    </div>
+                    <div class="p-3 rounded-xl bg-white/60 dark:bg-gray-900/60 border border-amber-200 dark:border-amber-800">
+                        <span class="text-gray-500 block">Reported Physical Cash:</span>
+                        <strong class="text-base text-amber-600">~$250.00</strong>
+                        <div class="text-[11px] text-amber-600 mt-1">Approximate observation; physical count & audit pending.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h4 class="font-bold text-gray-900 dark:text-white text-base">Unresolved Staging Records</h4>
+                        <p class="text-xs text-gray-500">Records kept in review staging to prevent distorting certified financial profit.</p>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                        {{ count($unresolvedItems) }} Items
+                    </span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-500 font-semibold uppercase">
+                                <th class="p-3">Sheet</th>
+                                <th class="p-3">Row</th>
+                                <th class="p-3">Proposed Type</th>
+                                <th class="p-3">Amount</th>
+                                <th class="p-3">Review Reason</th>
+                                <th class="p-3">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                            @forelse($unresolvedItems as $item)
+                            <tr>
+                                <td class="p-3 font-semibold">{{ $item->sheet_name }}</td>
+                                <td class="p-3">#{{ $item->row_index }}</td>
+                                <td class="p-3">{{ $item->proposed_type }}</td>
+                                <td class="p-3 font-bold">${{ number_format($item->amount, 2) }}</td>
+                                <td class="p-3 text-gray-600 dark:text-gray-400">{{ $item->review_reason }}</td>
+                                <td class="p-3">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
+                                        غير محسوم / Unresolved
+                                    </span>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="6" class="p-6 text-center text-gray-400">All historical items have been resolved or confirmed.</td>
                             </tr>
                             @endforelse
                         </tbody>

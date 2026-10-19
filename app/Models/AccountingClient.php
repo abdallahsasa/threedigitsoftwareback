@@ -21,6 +21,31 @@ class AccountingClient extends Model
         return $this->hasMany(AccountingProject::class, 'client_id');
     }
 
+    public function quotations(): HasMany
+    {
+        return $this->hasMany(AccountingQuotation::class, 'client_id');
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(AccountingInvoice::class, 'client_id');
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(AccountingPayment::class, 'client_id');
+    }
+
+    public function creditNotes(): HasMany
+    {
+        return $this->hasMany(AccountingCreditNote::class, 'client_id');
+    }
+
+    public function documentShares(): HasMany
+    {
+        return $this->hasMany(AccountingDocumentShare::class, 'client_id');
+    }
+
     public function transactions(): HasMany
     {
         return $this->hasMany(AccountingTransaction::class, 'client_id');
@@ -34,5 +59,32 @@ class AccountingClient extends Model
     public static function normalizeName(string $name): string
     {
         return strtolower(trim(preg_replace('/\s+/', ' ', $name)));
+    }
+
+    public function getDisplayNameAttribute(): string
+    {
+        if (!empty($this->company_name) && !empty($this->name) && $this->company_name !== $this->name) {
+            return "{$this->company_name} ({$this->name})";
+        }
+        return $this->company_name ?: $this->name;
+    }
+
+    /**
+     * Confirmed balance based on posted/issued documents and payments
+     */
+    public function getConfirmedOutstandingBalanceAttribute(): float
+    {
+        $issuedInvoicesTotal = (float) $this->invoices()
+            ->where('document_status', 'issued')
+            ->sum('total_amount');
+
+        $paidTotal = (float) $this->payments()
+            ->sum('amount');
+
+        $creditNotesTotal = (float) $this->creditNotes()
+            ->where('status', 'issued')
+            ->sum('amount');
+
+        return max(0.0, round($issuedInvoicesTotal - $paidTotal - $creditNotesTotal, 4));
     }
 }

@@ -3,19 +3,72 @@
 namespace Database\Seeders;
 
 use App\Models\AccountingAccount;
+use App\Models\AccountingCompanySetting;
 use App\Models\AccountingPartner;
 use App\Models\AccountingReconciliation;
+use App\Models\AccountingService;
 use App\Models\JournalEntry;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class AccountingDatabaseSeeder extends Seeder
 {
     public function run(): void
     {
         DB::transaction(function () {
-            // 1. Partners
+            // 0. Ensure Admin User
+            $adminUser = User::firstOrCreate(
+                ['email' => 'admin@threedigits.com'],
+                [
+                    'name' => 'Admin',
+                    'password' => Hash::make('password'),
+                    'role' => 'admin',
+                    'permissions' => [
+                        'view_accounting',
+                        'manage_clients_and_projects',
+                        'create_drafts',
+                        'issue_invoices',
+                        'record_payments_and_expenses',
+                        'send_documents',
+                        'import_historical_data',
+                        'approve_reconciliation',
+                        'manage_company_settings',
+                    ],
+                ]
+            );
+
+            // 1. Company Identity Settings
+            AccountingCompanySetting::firstOrCreate(
+                ['id' => 1],
+                [
+                    'brand_name' => 'Three Digit Software',
+                    'legal_company_name' => null, // Leave empty until configured to enforce issuance validation rule
+                    'tax_number' => null, // Leave empty until configured to enforce issuance validation rule
+                    'commercial_registration_number' => null,
+                    'registered_address' => null,
+                    'city' => 'Damascus',
+                    'country' => 'Syria',
+                    'phone' => '+963 999 000 000',
+                    'whatsapp' => '+963 999 000 000',
+                    'email' => 'info@threedigit.com',
+                    'website' => 'https://threedigit.com',
+                    'logo_path' => 'images/logo.svg',
+                    'payment_methods_text' => "Bank Transfer / Cash / USDT\nBank accounts provided upon invoice confirmation",
+                    'default_payment_terms' => 'Payment due within 14 days of invoice date. 50% advance for project commencement unless otherwise agreed.',
+                    'document_footer' => 'Thank you for choosing Three Digit Software. For inquiries, contact info@threedigit.com',
+                    'default_document_language' => 'ar',
+                    'invoice_prefix' => 'TDS-INV-',
+                    'quotation_prefix' => 'TDS-QT-',
+                    'receipt_prefix' => 'TDS-REC-',
+                    'credit_note_prefix' => 'TDS-CN-',
+                    'default_tax_enabled' => false,
+                    'default_tax_rate' => 0.00,
+                ]
+            );
+
+            // 2. Partners
             $abdullah = AccountingPartner::firstOrCreate(
                 ['slug' => 'abdullah'],
                 [
@@ -38,7 +91,7 @@ class AccountingDatabaseSeeder extends Seeder
                 ]
             );
 
-            // 2. Chart of Accounts
+            // 3. Chart of Accounts
             $accounts = [
                 // Assets (1000 - 1999)
                 ['code' => '1010', 'name_ar' => 'صندوق الشركة (نقدية)', 'name_en' => 'Cash in Hand (Company Fund)', 'type' => 'asset', 'sub_type' => 'cash', 'partner_id' => null, 'description' => 'أموال الشركة النقدية المتاحة'],
@@ -53,6 +106,8 @@ class AccountingDatabaseSeeder extends Seeder
                 ['code' => '2102', 'name_ar' => 'دين الشركة للشريك عامر', 'name_en' => 'Partner Debt - Amer', 'type' => 'liability', 'sub_type' => 'partner_debt', 'partner_id' => $amer->id, 'description' => 'مستحقات التمويل والمصاريف الشخصية للشريك عامر'],
                 ['code' => '2103', 'name_ar' => 'ذمم دائنة معلقة - عثمان', 'name_en' => 'Other Payables - Othman', 'type' => 'liability', 'sub_type' => 'other_payable', 'partner_id' => null, 'description' => 'مبالغ مدفوعة من عثمان قيد تحديد طبيعتها'],
                 ['code' => '2200', 'name_ar' => 'ذمم الموردين الدائنة', 'name_en' => 'Accounts Payable', 'type' => 'liability', 'sub_type' => 'accounts_payable', 'partner_id' => null, 'description' => 'فواتير الموردين والخدمات المستحقة الدفع'],
+                ['code' => '2250', 'name_ar' => 'ضريبة القيمة المضافة / المبيعات المستحقة', 'name_en' => 'Sales Tax / VAT Payable', 'type' => 'liability', 'sub_type' => 'sales_tax_payable', 'partner_id' => null, 'description' => 'الضرائب المحصلة الواجبة التوريد'],
+                ['code' => '2300', 'name_ar' => 'إيرادات مؤجلة / دفعات عملاء مقدمة', 'name_en' => 'Deferred Revenue / Customer Advances', 'type' => 'liability', 'sub_type' => 'deferred_revenue', 'partner_id' => null, 'description' => 'دفعات العملاء المقدمة قبل اكتمال تقديم الخدمة'],
 
                 // Equity (3000 - 3999)
                 ['code' => '3010', 'name_ar' => 'رأس المال التأسيسي', 'name_en' => 'Founding Capital', 'type' => 'equity', 'sub_type' => 'capital', 'partner_id' => null, 'description' => 'رأس مال التأسيس للشركة (مثل 700 دولار التأسيسية التي صُرفت)'],
@@ -78,8 +133,90 @@ class AccountingDatabaseSeeder extends Seeder
                 AccountingAccount::updateOrCreate(['code' => $acc['code']], $acc);
             }
 
-            // 3. Cutover Transition Record (13 October 2026)
-            $adminUser = User::first();
+            // 4. ERP Service Catalog
+            $services = [
+                [
+                    'name_ar' => 'تطوير المواقع وتطبيقات الويب',
+                    'name_en' => 'Website & Web Application Development',
+                    'category' => 'website_development',
+                    'description_ar' => 'تصميم وبرمجة المواقع التعريفية ومنصات الويب بأحدث التقنيات',
+                    'description_en' => 'Modern responsive website and web portal design & engineering',
+                    'unit' => 'project',
+                    'default_price' => 1200.0000,
+                ],
+                [
+                    'name_ar' => 'تطوير البرمجيات والأنظمة المخصصة',
+                    'name_en' => 'Custom Software & ERP Development',
+                    'category' => 'software_development',
+                    'description_ar' => 'بناء أنظمة إدارة داخلية ولوحات تحكم مخصصة للشركات',
+                    'description_en' => 'Tailored business automation and internal CRM/ERP software',
+                    'unit' => 'project',
+                    'default_price' => 2500.0000,
+                ],
+                [
+                    'name_ar' => 'حلول المتاجر والتجارة الإلكترونية',
+                    'name_en' => 'E-Commerce Platforms & Solutions',
+                    'category' => 'e_commerce',
+                    'description_ar' => 'إنشاء متاجر إلكترونية متكاملة مع بوابات الدفع والشحن',
+                    'description_en' => 'End-to-end e-commerce store with checkout & inventory integrations',
+                    'unit' => 'project',
+                    'default_price' => 1800.0000,
+                ],
+                [
+                    'name_ar' => 'إدارة حملات وسائل التواصل الاجتماعي',
+                    'name_en' => 'Social Media Management & Campaigns',
+                    'category' => 'social_media',
+                    'description_ar' => 'إدارة المحتوى، كتابة المنشورات، وإطلاق الحملات الإعلانية الممولة',
+                    'description_en' => 'Social media content creation, publishing, and paid advertising',
+                    'unit' => 'month',
+                    'default_price' => 450.0000,
+                ],
+                [
+                    'name_ar' => 'تصميم الهوية البصرية وتجربة المستخدم',
+                    'name_en' => 'Branding & UI/UX Design',
+                    'category' => 'design',
+                    'description_ar' => 'تصميم شعارات، هويات بصرية كاملة، وواجهات مستخدم تفاعلية',
+                    'description_en' => 'Logo, full visual brand identity, and UI/UX design mockups',
+                    'unit' => 'service',
+                    'default_price' => 600.0000,
+                ],
+                [
+                    'name_ar' => 'التصوير والإنتاج الإعلامي',
+                    'name_en' => 'Photography & Media Production',
+                    'category' => 'photography',
+                    'description_ar' => 'جلسات تصوير احترافية للمنتجات ومقاطع فيديو إعلانية للمشاريع',
+                    'description_en' => 'Commercial product photography, videography, and reels editing',
+                    'unit' => 'session',
+                    'default_price' => 350.0000,
+                ],
+                [
+                    'name_ar' => 'الاستضافة السحابية وإدارة السيرفرات',
+                    'name_en' => 'Cloud Hosting & Server Infrastructure',
+                    'category' => 'hosting',
+                    'description_ar' => 'خوادم سريعة ومحمية مع نسخ احتياطي دوري ودعم فني',
+                    'description_en' => 'Secure cloud hosting, daily backups, and performance monitoring',
+                    'unit' => 'year',
+                    'default_price' => 200.0000,
+                ],
+                [
+                    'name_ar' => 'الصيانة والدعم الفني المستمر',
+                    'name_en' => 'Maintenance & Ongoing Support',
+                    'category' => 'maintenance',
+                    'description_ar' => 'تحديثات أمنية دورية، حل المشكلات التقنية، وتطوير المزايا',
+                    'description_en' => 'Ongoing technical support, bug fixing, and software updates',
+                    'unit' => 'month',
+                    'default_price' => 150.0000,
+                ],
+            ];
+
+            foreach ($services as $srv) {
+                AccountingService::updateOrCreate(
+                    ['category' => $srv['category']],
+                    $srv
+                );
+            }
+
+            // 5. Cutover Transition Record (13 October 2026)
             $transitionDate = '2026-10-13';
 
             $reconciliation = AccountingReconciliation::firstOrCreate(
@@ -101,7 +238,7 @@ class AccountingDatabaseSeeder extends Seeder
                 ]
             );
 
-            // 4. Create Cutover Opening Journal Entry
+            // 6. Cutover Opening Journal Entry
             $existingCutoverEntry = JournalEntry::where('reference_type', 'cutover_transition')->first();
             if (!$existingCutoverEntry) {
                 $cashAcc = AccountingAccount::where('code', '1010')->first();

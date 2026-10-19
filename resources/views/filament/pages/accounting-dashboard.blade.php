@@ -1,388 +1,349 @@
 <x-filament-panels::page>
-    <link rel="stylesheet" href="{{ asset('css/accounting-pages.css') }}?v=1">
+    <link rel="stylesheet" href="{{ asset('css/accounting-pages.css') }}?v=2">
     <div class="space-y-6" dir="ltr">
-        <!-- 1. Header & Cutover Status Banner -->
-        <div class="p-6 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 shadow-sm relative overflow-hidden">
+        <!-- 1. Transition Baseline Status Banner -->
+        <div class="p-6 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-amber-500/5 to-transparent border border-emerald-500/20 shadow-sm relative overflow-hidden">
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
                     <div class="flex flex-wrap items-center gap-2">
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30">
                             <x-heroicon-m-calendar class="w-3.5 h-3.5" />
-                            Cutover Transition Date: {{ $reconciliationDate }}
+                            Confirmed Transition Date: {{ $reconciliationDate }}
                         </span>
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
                             <x-heroicon-m-check-badge class="w-3.5 h-3.5" />
-                            Balances Verified by Management
+                            Management Confirmed Debt: $2,554 ($1,277 each)
                         </span>
+                        @if($totalUnresolvedCount > 0)
+                            <a href="{{ route('filament.admin.resources.accounting-reviews.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-500/20 text-red-700 dark:text-red-300 border border-red-500/30 hover:underline">
+                                <x-heroicon-m-exclamation-triangle class="w-3.5 h-3.5" />
+                                {{ $totalUnresolvedCount }} Unresolved Items Pending Review
+                            </a>
+                        @endif
                     </div>
                     <h2 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white mt-2.5">
-                        Internal Accounting & Partner Capital System
+                        Three Digit Software — ERP & Financial Management
                     </h2>
                     <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 max-w-3xl leading-relaxed">
-                        Strict segregation of company treasury funds from partner personal funding debts and drawings. 
-                        Confirmed Debt to Abdullah: <strong class="text-amber-600 dark:text-amber-400">${{ number_format($abdullahDebt, 2) }}</strong> | 
-                        Confirmed Debt to Amer: <strong class="text-amber-600 dark:text-amber-400">${{ number_format($amerDebt, 2) }}</strong> (net after $1,000 cash recovery) | 
-                        Reported Vault Cash: <strong class="text-emerald-600 dark:text-emerald-400">${{ number_format($reportedCash, 2) }}</strong> (approximate count).
+                        Segregated double-entry accounting engine. Net historical debt to Abdullah: <strong class="text-amber-600 dark:text-amber-400">${{ number_format($abdullahDebt, 2) }}</strong> | 
+                        Net historical debt to Amer: <strong class="text-amber-600 dark:text-amber-400">${{ number_format($amerDebt, 2) }}</strong> (net after $1,000 repayment) | 
+                        Reported Vault Cash: <strong class="text-emerald-600 dark:text-emerald-400">${{ number_format($reportedCash, 2) }}</strong> (<span class="text-amber-500">غير محسوم / Unresolved Observation</span>).
                     </p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2.5 shrink-0">
-                    <x-filament::button tag="a" :href="route('filament.admin.resources.accounting-transactions.create')" color="primary" icon="heroicon-m-plus">
-                        New Transaction
+                    <x-filament::button tag="a" :href="route('filament.admin.resources.accounting-invoices.create')" color="primary" icon="heroicon-m-plus">
+                        New Invoice
                     </x-filament::button>
-                    <x-filament::button tag="a" :href="route('filament.admin.pages.accounting-import-page')" color="gray" icon="heroicon-m-arrow-up-tray">
-                        Import Excel
+                    <x-filament::button tag="a" :href="route('filament.admin.resources.accounting-quotations.create')" color="gray" icon="heroicon-m-document-currency-dollar">
+                        New Quotation
                     </x-filament::button>
                     <x-filament::button tag="a" :href="route('filament.admin.pages.accounting-reports-page')" color="gray" icon="heroicon-m-document-chart-bar">
-                        Statements
+                        Reports & Exports
                     </x-filament::button>
                 </div>
             </div>
         </div>
 
-        <!-- 2. Primary KPI Cards -->
+        <!-- 2. Thirteen Core Business Metrics Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- Company Cash In Hand -->
-            <div class="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm relative overflow-hidden transition hover:shadow-md">
+            <!-- 1. Contract Values -->
+            <a href="{{ route('filament.admin.resources.accounting-projects.index') }}" class="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md transition block group">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Company Treasury (Cash)</span>
-                    <div class="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                        <x-heroicon-o-banknotes class="w-5 h-5" />
+                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Total Contract Values</span>
+                    <div class="p-2.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 group-hover:scale-105 transition">
+                        <x-heroicon-o-briefcase class="w-5 h-5" />
                     </div>
                 </div>
                 <div class="mt-3">
-                    <div class="text-3xl font-extrabold text-gray-900 dark:text-white">
-                        ${{ number_format($cashBalance, 2) }}
+                    <div class="text-2xl font-black text-gray-900 dark:text-white">
+                        ${{ number_format($totalContractValue, 2) }}
                     </div>
-                    <div class="flex items-center gap-1.5 mt-2.5 text-xs text-gray-500 dark:text-gray-400">
-                        <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
-                        <span>Cutover Baseline: ${{ number_format($reportedCash, 2) }} (Physical audit pending)</span>
+                    <div class="mt-2 text-xs text-gray-500 flex items-center justify-between">
+                        <span>All active project scopes</span>
+                        <span class="text-purple-600 font-semibold">View Projects →</span>
                     </div>
                 </div>
-            </div>
+            </a>
 
-            <!-- Total Partner Debts -->
-            <div class="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm relative overflow-hidden transition hover:shadow-md">
+            <!-- 2. Issued Invoice Amounts -->
+            <a href="{{ route('filament.admin.resources.accounting-invoices.index') }}" class="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md transition block group">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Total Partner Debt</span>
-                    <div class="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
-                        <x-heroicon-o-user-group class="w-5 h-5" />
+                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Issued Invoices</span>
+                    <div class="p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 group-hover:scale-105 transition">
+                        <x-heroicon-o-document-text class="w-5 h-5" />
                     </div>
                 </div>
                 <div class="mt-3">
-                    <div class="text-3xl font-extrabold text-amber-600 dark:text-amber-400">
-                        ${{ number_format($totalPartnerDebt, 2) }}
+                    <div class="text-2xl font-black text-gray-900 dark:text-white">
+                        ${{ number_format($totalIssuedInvoices, 2) }}
                     </div>
-                    <div class="mt-2.5 text-xs text-gray-500 dark:text-gray-400 flex items-center justify-between">
-                        <span>Abdullah: <strong class="text-gray-700 dark:text-gray-300">${{ number_format($abdullahDebt, 2) }}</strong></span>
-                        <span>Amer: <strong class="text-gray-700 dark:text-gray-300">${{ number_format($amerDebt, 2) }}</strong></span>
+                    <div class="mt-2 text-xs text-gray-500 flex items-center justify-between">
+                        <span>Official posted billing</span>
+                        <span class="text-blue-600 font-semibold">Invoices List →</span>
                     </div>
                 </div>
-            </div>
+            </a>
 
-            <!-- Total Client Revenue -->
-            <div class="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm relative overflow-hidden transition hover:shadow-md">
+            <!-- 3. Earned Revenue -->
+            <a href="{{ route('filament.admin.pages.accounting-reports-page') }}" class="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md transition block group">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Operating Revenue</span>
-                    <div class="p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Earned Revenue (4010)</span>
+                    <div class="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 group-hover:scale-105 transition">
                         <x-heroicon-o-arrow-trending-up class="w-5 h-5" />
                     </div>
                 </div>
                 <div class="mt-3">
-                    <div class="text-3xl font-extrabold text-gray-900 dark:text-white">
-                        ${{ number_format($totalRevenue, 2) }}
+                    <div class="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                        ${{ number_format($totalEarnedRevenue, 2) }}
                     </div>
-                    <div class="mt-2.5 text-xs text-gray-500 dark:text-gray-400 flex items-center justify-between">
-                        <span>Collected from projects</span>
-                        <span class="text-blue-600 dark:text-blue-400">Est. Rec: ${{ number_format($potentialReceivables, 2) }}</span>
+                    <div class="mt-2 text-xs text-gray-500 flex items-center justify-between">
+                        <span>Recognized operating revenue</span>
+                        <span class="text-emerald-600 font-semibold">Ledger →</span>
                     </div>
                 </div>
-            </div>
+            </a>
 
-            <!-- Expenses & Direct Costs -->
-            <div class="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm relative overflow-hidden transition hover:shadow-md">
+            <!-- 4. Customer Collections -->
+            <a href="{{ route('filament.admin.resources.accounting-payments.index') }}" class="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md transition block group">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Expenses & Direct Costs</span>
-                    <div class="p-2.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
-                        <x-heroicon-o-receipt-percent class="w-5 h-5" />
+                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Customer Collections</span>
+                    <div class="p-2.5 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 group-hover:scale-105 transition">
+                        <x-heroicon-o-banknotes class="w-5 h-5" />
                     </div>
                 </div>
                 <div class="mt-3">
-                    <div class="text-3xl font-extrabold text-rose-600 dark:text-rose-400">
-                        ${{ number_format($totalOperatingExpenses + $totalDirectCosts, 2) }}
+                    <div class="text-2xl font-black text-gray-900 dark:text-white">
+                        ${{ number_format($totalCustomerCollections, 2) }}
                     </div>
-                    <div class="mt-2.5 text-xs text-gray-500 dark:text-gray-400 flex items-center justify-between">
-                        <span>Operating: ${{ number_format($totalOperatingExpenses, 2) }}</span>
-                        <span>Direct: ${{ number_format($totalDirectCosts, 2) }}</span>
+                    <div class="mt-2 text-xs text-gray-500 flex items-center justify-between">
+                        <span>Actual cash collected</span>
+                        <span class="text-teal-600 font-semibold">Receipts →</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- 5. Operating Expenses -->
+            <a href="{{ route('filament.admin.resources.accounting-transactions.index') }}" class="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md transition block group">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Operating Expenses (6000s)</span>
+                    <div class="p-2.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 group-hover:scale-105 transition">
+                        <x-heroicon-o-building-office class="w-5 h-5" />
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="text-2xl font-black text-gray-900 dark:text-white">
+                        ${{ number_format($totalOperatingExpenses, 2) }}
+                    </div>
+                    <div class="mt-2 text-xs text-gray-500 flex items-center justify-between">
+                        <span>Rent, office, tools, ads</span>
+                        <span class="text-rose-600 font-semibold">Expenses →</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- 6. Direct Project Costs -->
+            <a href="{{ route('filament.admin.resources.accounting-transactions.index') }}" class="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md transition block group">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Direct Project Costs (5010)</span>
+                    <div class="p-2.5 rounded-xl bg-orange-500/10 text-orange-600 dark:text-orange-400 group-hover:scale-105 transition">
+                        <x-heroicon-o-wrench-screwdriver class="w-5 h-5" />
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="text-2xl font-black text-gray-900 dark:text-white">
+                        ${{ number_format($totalDirectCosts, 2) }}
+                    </div>
+                    <div class="mt-2 text-xs text-gray-500 flex items-center justify-between">
+                        <span>Direct delivery & labor</span>
+                        <span class="text-orange-600 font-semibold">Costs →</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- 7. Company Account Balances -->
+            <div class="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Company Accounts</span>
+                    <div class="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                        <x-heroicon-o-wallet class="w-5 h-5" />
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="text-2xl font-black text-gray-900 dark:text-white">
+                        ${{ number_format($totalCompanyFunds, 2) }}
+                    </div>
+                    <div class="mt-2 text-xs text-gray-500 flex items-center justify-between">
+                        <span>Cash: ${{ number_format($cashBalance, 2) }}</span>
+                        <span>Bank: ${{ number_format($bankBalance, 2) }}</span>
                     </div>
                 </div>
             </div>
+
+            <!-- 8. Reported Physical Cash & Date -->
+            <div class="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Reported Physical Cash</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300">
+                        غير محسوم / Unresolved
+                    </span>
+                </div>
+                <div class="mt-3">
+                    <div class="text-2xl font-black text-amber-600 dark:text-amber-400">
+                        ~${{ number_format($reportedCash, 2) }}
+                    </div>
+                    <div class="mt-2 text-xs text-gray-500">
+                        Observed on {{ $reconciliationDate }} (Physical audit pending)
+                    </div>
+                </div>
+            </div>
+
+            <!-- 9. Partner Loan Balances -->
+            <a href="{{ route('filament.admin.resources.accounting-partners.index') }}" class="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md transition block group">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Partner Loans (Debt)</span>
+                    <div class="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:scale-105 transition">
+                        <x-heroicon-o-user-group class="w-5 h-5" />
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="text-2xl font-black text-amber-600 dark:text-amber-400">
+                        ${{ number_format($totalPartnerDebt, 2) }}
+                    </div>
+                    <div class="mt-2 text-xs text-gray-500 flex items-center justify-between">
+                        <span>Abdullah: ${{ number_format($abdullahDebt, 2) }}</span>
+                        <span>Amer: ${{ number_format($amerDebt, 2) }}</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- 10. Partner Withdrawals and Distributions -->
+            <a href="{{ route('filament.admin.resources.accounting-partners.index') }}" class="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md transition block group">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Partner Drawings (3100s)</span>
+                    <div class="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 group-hover:scale-105 transition">
+                        <x-heroicon-o-arrow-up-tray class="w-5 h-5" />
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="text-2xl font-black text-gray-900 dark:text-white">
+                        ${{ number_format($totalDrawings, 2) }}
+                    </div>
+                    <div class="mt-2 text-xs text-gray-500 flex items-center justify-between">
+                        <span>Separate from debts</span>
+                        <span class="text-indigo-600 font-semibold">Drawings →</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- 11. Confirmed Customer Receivables -->
+            <a href="{{ route('filament.admin.resources.accounting-clients.index') }}" class="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md transition block group">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Customer Receivables</span>
+                    <div class="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 group-hover:scale-105 transition">
+                        <x-heroicon-o-users class="w-5 h-5" />
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="text-2xl font-black text-gray-900 dark:text-white">
+                        ${{ number_format($confirmedReceivables, 2) }}
+                    </div>
+                    <div class="mt-2 text-xs text-gray-500 flex items-center justify-between">
+                        <span>Ledger Confirmed (1100)</span>
+                        <span class="text-cyan-600 font-semibold">Clients →</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- 12. Unresolved Records -->
+            <a href="{{ route('filament.admin.resources.accounting-reviews.index') }}" class="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md transition block group">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Unresolved Items</span>
+                    <div class="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:scale-105 transition">
+                        <x-heroicon-o-question-mark-circle class="w-5 h-5" />
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="text-2xl font-black {{ $totalUnresolvedCount > 0 ? 'text-amber-600' : 'text-emerald-600' }}">
+                        {{ $totalUnresolvedCount }} records
+                    </div>
+                    <div class="mt-2 text-xs text-gray-500 flex items-center justify-between">
+                        <span>Excluded from final P&L</span>
+                        <span class="text-amber-600 font-semibold">Review Staging →</span>
+                    </div>
+                </div>
+            </a>
         </div>
 
-        <!-- 3. Secondary Metrics: Partner Accounts & Cutover Audit -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Card 1: Partner Accounts Breakdown -->
-            <div class="p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm flex flex-col justify-between">
+        <!-- 3. Operating Profit & Accounting Disclosures -->
+        <div class="p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200 dark:border-gray-800 pb-5">
                 <div>
-                    <div class="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-800">
-                        <h3 class="font-bold text-gray-900 dark:text-white text-base flex items-center gap-2">
-                            <x-heroicon-m-user-circle class="w-5 h-5 text-amber-500" />
-                            Confirmed Partner Accounts
-                        </h3>
-                        <a href="{{ route('filament.admin.resources.accounting-partners.index') }}" class="text-xs font-semibold text-amber-600 dark:text-amber-400 hover:underline">
-                            View Ledger &rarr;
-                        </a>
-                    </div>
-                    <div class="space-y-4 mt-4">
-                        <!-- Abdullah -->
-                        <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-900 dark:text-white">Abdullah Al Sasa</span>
-                                <span class="font-extrabold text-amber-600 dark:text-amber-400">${{ number_format($abdullahDebt, 2) }}</span>
-                            </div>
-                            <div class="mt-1.5 text-xs text-gray-500 dark:text-gray-400 flex justify-between">
-                                <span>Payable by Company</span>
-                                <span>Drawings: ${{ number_format($abdullahDrawings, 2) }}</span>
-                            </div>
-                        </div>
-
-                        <!-- Amer -->
-                        <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-gray-900 dark:text-white">Amer</span>
-                                <span class="font-extrabold text-amber-600 dark:text-amber-400">${{ number_format($amerDebt, 2) }}</span>
-                            </div>
-                            <div class="mt-1.5 text-xs text-gray-500 dark:text-gray-400 flex justify-between">
-                                <span>Payable by Company (Net)</span>
-                                <span>Drawings: ${{ number_format($amerDrawings, 2) }}</span>
-                            </div>
-                        </div>
-
-                        <div class="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/20 text-xs text-amber-900 dark:text-amber-200 border border-amber-200/50 dark:border-amber-900/40">
-                            <strong>Audit Clarification:</strong> Amer's $1,000 cash recovery on Aug 18, 2026 was deducted from his balance. Personal settlement of $200–$210 between Abdullah and Amer is already factored into both initial balances.
-                        </div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">13. Operating Results</span>
+                    <h3 class="text-2xl font-black text-gray-900 dark:text-white mt-1">
+                        Operating Margin: ${{ number_format($operatingProfit, 2) }} USD
+                    </h3>
+                </div>
+                <div class="text-xs bg-gray-50 dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 max-w-xl">
+                    <strong class="text-gray-900 dark:text-white">Accounting Basis & Integrity Disclosure:</strong>
+                    <div class="text-gray-600 dark:text-gray-400 mt-0.5">
+                        Calculated strictly from posted double-entry journal entries (Revenue $4,010 minus Direct Costs $5,010 and Operating Expenses $6,000s). 
+                        Historical unverified spreadsheet items are retained in review staging and <em>do not silently fabricate operating profit</em>.
                     </div>
                 </div>
             </div>
 
-            <!-- Card 2: Operating Profit & Reliability Status -->
-            <div class="p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm flex flex-col justify-between">
+            <!-- Recent Invoices & Transactions -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                <!-- Recent Invoices -->
                 <div>
-                    <div class="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-800">
-                        <h3 class="font-bold text-gray-900 dark:text-white text-base flex items-center gap-2">
-                            <x-heroicon-m-calculator class="w-5 h-5 text-blue-500" />
-                            Operating Profit & Status
-                        </h3>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $pendingReviewCount > 0 ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' }}">
-                            {{ $pendingReviewCount > 0 ? 'Audit Items Pending' : 'Fully Balanced' }}
-                        </span>
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="font-bold text-gray-900 dark:text-white text-sm">Recent Issued Invoices</h4>
+                        <a href="{{ route('filament.admin.resources.accounting-invoices.index') }}" class="text-xs text-primary-600 font-semibold hover:underline">View All</a>
                     </div>
-
-                    <div class="mt-4">
-                        <div class="text-xs uppercase tracking-wider font-semibold text-gray-500 dark:text-gray-400">Net Operating Profit:</div>
-                        <div class="text-3xl font-extrabold mt-1 {{ $operatingProfit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400' }}">
-                            ${{ number_format($operatingProfit, 2) }}
-                        </div>
-                        <div class="mt-2 text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-                            Calculation: Revenue (${{ number_format($totalRevenue, 2) }}) minus Direct Costs (${{ number_format($totalDirectCosts, 2) }}) and Operating Expenses (${{ number_format($totalOperatingExpenses, 2) }}).
-                        </div>
-
-                        <div class="mt-4 p-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-800 text-xs text-gray-600 dark:text-gray-300 space-y-1.5">
-                            <div>• Initial $700 founding capital recorded as equity.</div>
-                            <div>• Partner shares ($4,798) in review as drawings vs direct labor.</div>
-                            <div>• Historical Excel discrepancy (−$254.51) is an unverified difference, not real loss.</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card 3: Cutover & Review Queue Status -->
-            <div class="p-6 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm flex flex-col justify-between">
-                <div>
-                    <div class="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-800">
-                        <h3 class="font-bold text-gray-900 dark:text-white text-base flex items-center gap-2">
-                            <x-heroicon-m-clipboard-document-check class="w-5 h-5 text-indigo-500" />
-                            Audit & Review Queue
-                        </h3>
-                        <a href="{{ route('filament.admin.resources.accounting-reviews.index') }}" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
-                            View All ({{ $pendingReviewCount }}) &rarr;
-                        </a>
-                    </div>
-
-                    <div class="mt-4 space-y-3">
-                        <div class="flex items-center justify-between p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/30">
-                            <div class="flex items-center gap-2">
-                                <x-heroicon-m-exclamation-triangle class="w-5 h-5 text-rose-500" />
-                                <span class="text-xs font-semibold text-rose-800 dark:text-rose-300">Items Requiring Decision</span>
+                    <div class="divide-y divide-gray-100 dark:divide-gray-800 border border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden">
+                        @forelse($recentInvoices as $inv)
+                            <div class="p-3 bg-white dark:bg-gray-900 flex items-center justify-between text-xs">
+                                <div>
+                                    <strong class="text-gray-900 dark:text-white font-mono">{{ $inv->invoice_number }}</strong>
+                                    <span class="text-gray-500"> — {{ $inv->client->display_name }}</span>
+                                    <div class="text-[11px] text-gray-400">{{ $inv->issue_date->format('Y-m-d') }}</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-bold text-gray-900 dark:text-white">${{ number_format($inv->total_amount, 2) }}</div>
+                                    <span class="text-[10px] uppercase font-bold {{ $inv->payment_status === 'paid' ? 'text-emerald-600' : 'text-amber-600' }}">
+                                        {{ $inv->payment_status }}
+                                    </span>
+                                </div>
                             </div>
-                            <span class="text-sm font-extrabold text-rose-600 dark:text-rose-400">{{ $pendingReviewCount }}</span>
-                        </div>
-
-                        <div class="p-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 text-xs text-gray-600 dark:text-gray-300 space-y-1.5">
-                            <div class="font-bold text-gray-900 dark:text-white">Key Items in Review Queue:</div>
-                            <div>1. Classify partner shares ($4,798 as drawings or execution labor).</div>
-                            <div>2. Office rent discrepancy ($1,000 in Excel vs $2,000 verbal).</div>
-                            <div>3. Confirm Abdullah Sheet1 duplicated payments ($1,075 × 2).</div>
-                            <div>4. Othman payments ($16.21 and $4.00).</div>
-                            <div>5. FRS receivables & Abdullah perfumes ($85).</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-4">
-                    <a href="{{ route('filament.admin.resources.accounting-reviews.index') }}" class="w-full inline-flex justify-center items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-semibold text-xs transition border border-indigo-200 dark:border-indigo-800">
-                        Open Decision & Audit Screen
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- 4. Quick Review Queue Table -->
-        @if(count($pendingReviews) > 0)
-        <div class="rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-            <div class="p-5 border-b border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                    <h3 class="font-bold text-gray-900 dark:text-white text-base">Pending Review Queue Highlights</h3>
-                    <p class="text-xs text-gray-500 mt-0.5">Transactions staged from Excel awaiting management classification</p>
-                </div>
-                <a href="{{ route('filament.admin.resources.accounting-reviews.index') }}" class="text-xs font-semibold text-amber-600 dark:text-amber-400 hover:underline">
-                    View Complete Audit Table &rarr;
-                </a>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                    <thead class="bg-gray-50 dark:bg-gray-800/60 text-gray-500 dark:text-gray-400 font-semibold border-b border-gray-100 dark:border-gray-800">
-                        <tr>
-                            <th class="p-3.5">Sheet / Row</th>
-                            <th class="p-3.5">Description / Vendor</th>
-                            <th class="p-3.5">Amount</th>
-                            <th class="p-3.5">Payer in File</th>
-                            <th class="p-3.5">Reason for Review</th>
-                            <th class="p-3.5">Proposed Type</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-gray-800 text-gray-700 dark:text-gray-300">
-                        @foreach($pendingReviews as $item)
-                        <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition">
-                            <td class="p-3.5 font-mono text-gray-500">
-                                <span class="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
-                                    {{ $item->sheet_name }} : R{{ $item->row_index }}
-                                </span>
-                            </td>
-                            <td class="p-3.5 font-semibold text-gray-900 dark:text-white">
-                                {{ $item->raw_data['Vendor / Service'] ?? $item->raw_data['Project / Service'] ?? $item->raw_data['Client Name'] ?? '-' }}
-                            </td>
-                            <td class="p-3.5 font-bold text-gray-900 dark:text-white">
-                                ${{ number_format((float)$item->amount, 2) }}
-                            </td>
-                            <td class="p-3.5">
-                                {{ $item->raw_data['Paid By'] ?? $item->raw_data['founders '] ?? '-' }}
-                            </td>
-                            <td class="p-3.5 text-rose-600 dark:text-rose-400 max-w-xs">
-                                {{ $item->review_reason }}
-                            </td>
-                            <td class="p-3.5">
-                                <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
-                                    {{ $item->proposed_type }}
-                                </span>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        @endif
-
-        <!-- 5. Recent Accounting Transactions -->
-        <div class="rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-            <div class="p-5 border-b border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                    <h3 class="font-bold text-gray-900 dark:text-white text-base">Recent Posted Transactions & Journal Entries</h3>
-                    <p class="text-xs text-gray-500 mt-0.5">Double-entry accounting journal entries posted with balanced debits and credits</p>
-                </div>
-                <a href="{{ route('filament.admin.resources.accounting-transactions.index') }}" class="text-xs font-semibold text-amber-600 dark:text-amber-400 hover:underline">
-                    View All Transactions &rarr;
-                </a>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                    <thead class="bg-gray-50 dark:bg-gray-800/60 text-gray-500 dark:text-gray-400 font-semibold border-b border-gray-100 dark:border-gray-800">
-                        <tr>
-                            <th class="p-3.5">Reference #</th>
-                            <th class="p-3.5">Date</th>
-                            <th class="p-3.5">Transaction Type</th>
-                            <th class="p-3.5">Amount (USD)</th>
-                            <th class="p-3.5">Party / Entity</th>
-                            <th class="p-3.5">Money Source</th>
-                            <th class="p-3.5">Notes</th>
-                            <th class="p-3.5">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-gray-800 text-gray-700 dark:text-gray-300">
-                        @forelse($recentTransactions as $trx)
-                        <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition">
-                            <td class="p-3.5 font-mono text-gray-500 font-medium">{{ $trx->transaction_number }}</td>
-                            <td class="p-3.5">{{ $trx->transaction_date->format('Y-m-d') }}</td>
-                            <td class="p-3.5">
-                                <span class="px-2.5 py-1 rounded-full font-semibold text-xs
-                                    @if($trx->transaction_type === 'client_collection') bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300
-                                    @elseif($trx->transaction_type === 'partner_funding') bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300
-                                    @elseif($trx->transaction_type === 'partner_personal_expense') bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300
-                                    @elseif($trx->transaction_type === 'partner_debt_repayment') bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300
-                                    @elseif($trx->transaction_type === 'partner_distribution') bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-300
-                                    @else bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300 @endif">
-                                    {{ match($trx->transaction_type) {
-                                        'client_collection' => 'Client Collection',
-                                        'partner_funding' => 'Partner Funding',
-                                        'partner_personal_expense' => 'Personal Out-of-Pocket Expense',
-                                        'company_expense' => 'Company Expense',
-                                        'partner_debt_repayment' => 'Partner Debt Repayment',
-                                        'partner_distribution' => 'Partner Drawing / Distribution',
-                                        'capital_injection' => 'Founding Capital Injection',
-                                        'partner_project_labor' => 'Partner Project Execution Labor',
-                                        default => ucwords(str_replace('_', ' ', $trx->transaction_type))
-                                    } }}
-                                </span>
-                            </td>
-                            <td class="p-3.5 font-bold text-gray-900 dark:text-white">
-                                ${{ number_format((float)$trx->amount, 2) }}
-                            </td>
-                            <td class="p-3.5 font-medium">
-                                {{ $trx->partner?->name_en ?: ($trx->partner?->name_ar ?: ($trx->client?->name ?: '-')) }}
-                            </td>
-                            <td class="p-3.5">
-                                <span class="px-2 py-0.5 rounded text-xs bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
-                                    {{ match($trx->money_source) {
-                                        'company_funds' => 'Company Treasury',
-                                        'personal_abdullah' => 'Abdullah Personal',
-                                        'personal_amer' => 'Amer Personal',
-                                        'othman' => 'Othman',
-                                        default => ucwords(str_replace('_', ' ', $trx->money_source))
-                                    } }}
-                                </span>
-                            </td>
-                            <td class="p-3.5 max-w-xs truncate text-gray-600 dark:text-gray-400">
-                                {{ $trx->notes ?: '-' }}
-                            </td>
-                            <td class="p-3.5">
-                                @if($trx->status === 'reversed')
-                                    <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300 text-xs font-semibold">Reversed</span>
-                                @else
-                                    <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 text-xs font-semibold">Posted</span>
-                                @endif
-                            </td>
-                        </tr>
                         @empty
-                        <tr>
-                            <td colspan="8" class="p-6 text-center text-gray-500">
-                                No transactions recorded yet. Click "New Transaction" or "Import Excel" to get started.
-                            </td>
-                        </tr>
+                            <div class="p-4 text-center text-xs text-gray-400">No invoices issued yet.</div>
                         @endforelse
-                    </tbody>
-                </table>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="font-bold text-gray-900 dark:text-white text-sm">Recent Ledger Entries & Movements</h4>
+                        <a href="{{ route('filament.admin.resources.accounting-transactions.index') }}" class="text-xs text-primary-600 font-semibold hover:underline">View All</a>
+                    </div>
+                    <div class="divide-y divide-gray-100 dark:divide-gray-800 border border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden">
+                        @forelse($recentTransactions as $trx)
+                            <div class="p-3 bg-white dark:bg-gray-900 flex items-center justify-between text-xs">
+                                <div>
+                                    <strong class="text-gray-900 dark:text-white">{{ $trx->transaction_type_label }}</strong>
+                                    <div class="text-[11px] text-gray-400">{{ $trx->notes ?: ($trx->payer_name ?: $trx->transaction_number) }}</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-bold text-gray-900 dark:text-white">${{ number_format($trx->amount, 2) }}</div>
+                                    <span class="text-[10px] text-gray-400">{{ $trx->transaction_date->format('Y-m-d') }}</span>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="p-4 text-center text-xs text-gray-400">No recent transactions recorded.</div>
+                        @endforelse
+                    </div>
+                </div>
             </div>
         </div>
     </div>
