@@ -16,6 +16,16 @@ class AccountingClient extends Model
         'potential_receivable_amount' => 'decimal:4',
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function (AccountingClient $client) {
+            if (empty($client->normalized_name)) {
+                $base = $client->name ?: $client->company_name ?: $client->brand_name ?: 'client';
+                $client->normalized_name = static::normalizeName($base);
+            }
+        });
+    }
+
     public function projects(): HasMany
     {
         return $this->hasMany(AccountingProject::class, 'client_id');

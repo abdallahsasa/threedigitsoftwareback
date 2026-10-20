@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS `accounting_clients` (
   `type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'company',
   `brand_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `legal_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `normalized_name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `normalized_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `company_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `business_sector` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `contact_person` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
